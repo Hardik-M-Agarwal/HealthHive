@@ -38,6 +38,14 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
+  phoneNumber: {
+    type: String,
+    required: false,
+    match: [
+      /^[0-9]{10}$/,
+      'Please provide a valid 10-digit phone number'
+    ]
+  },
   createdAt: {
     type: Date,
     default: Date.now

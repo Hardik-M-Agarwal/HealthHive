@@ -20,7 +20,7 @@ const signup = async (req, res) => {
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { name, email, password } = req.body;
+    const { name, email, password, phoneNumber } = req.body; // Add phoneNumber here
 
     // Check if user exists
     const userExists = await User.findOne({ email });
@@ -28,11 +28,12 @@ const signup = async (req, res) => {
       return res.status(400).json({ message: 'User already exists' });
     }
 
-    // Create user
+    // Create user with phoneNumber
     const user = await User.create({
       name,
       email,
       password,
+      phoneNumber // Add this line
     });
 
     // Generate token
@@ -45,6 +46,7 @@ const signup = async (req, res) => {
         id: user._id,
         name: user.name,
         email: user.email,
+        phoneNumber: user.phoneNumber, 
         role: user.role,
         onboardingCompleted: user.onboardingCompleted,
         familyId: user.familyId
@@ -90,6 +92,7 @@ const login = async (req, res) => {
         id: user._id,
         name: user.name,
         email: user.email,
+        phoneNumber: user.phoneNumber, 
         role: user.role,
         onboardingCompleted: user.onboardingCompleted,
         familyId: user.familyId
@@ -113,6 +116,7 @@ const getMe = async (req, res) => {
         id: user._id,
         name: user.name,
         email: user.email,
+        phoneNumber: user.phoneNumber, 
         role: user.role,
         onboardingCompleted: user.onboardingCompleted,
         familyId: user.familyId

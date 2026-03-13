@@ -16,7 +16,6 @@ const onboardingRoutes = require('./routes/onboardingRoutes');
 const medicationRoutes = require('./routes/medicationRoutes');
 const geminiRoutes = require('./routes/geminiRoutes');
 
-
 const app = express();
 
 // Body parser
@@ -41,12 +40,34 @@ app.use((err, req, res, next) => {
 const PORT = process.env.PORT || 5000;
 
 const server = app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`🚀 Server running on port ${PORT}`);
+  
+  // Start reminder service after server is running
+  try {
+    require('./services/reminderService');
+    console.log('✅ Medication reminder service initialized');
+  } catch (error) {
+    console.error('❌ Failed to start reminder service:', error);
+  }
 });
 
 // Handle unhandled promise rejections
 process.on('unhandledRejection', (err, promise) => {
-  console.log(`Error: ${err.message}`);
+  console.log(`❌ Error: ${err.message}`);
   // Close server & exit process
   server.close(() => process.exit(1));
+});
+
+// Handle uncaught exceptions
+process.on('uncaughtException', (err) => {
+  console.log(`❌ Uncaught Exception: ${err.message}`);
+  process.exit(1);
+});
+
+// Graceful shutdown
+process.on('SIGTERM', () => {
+  console.log('👋 SIGTERM received. Shutting down gracefully');
+  server.close(() => {
+    console.log('💤 Process terminated');
+  });
 });

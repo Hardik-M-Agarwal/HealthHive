@@ -8,7 +8,10 @@ const { protect } = require('../middleware/authMiddleware');
 const signupValidation = [
   body('name').notEmpty().withMessage('Name is required'),
   body('email').isEmail().withMessage('Please provide a valid email'),
-  body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters')
+  body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
+  body('phoneNumber')
+    .notEmpty().withMessage('Phone number is required')
+    .matches(/^[0-9]{10}$/).withMessage('Please provide a valid 10-digit phone number')
 ];
 
 const loginValidation = [
