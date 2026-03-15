@@ -8,6 +8,7 @@ import Signup from './components/auth/Signup';
 import FamilyChoice from './components/auth/FamilyChoice';
 import OnboardingWizard from './components/onboarding/OnboardingWizard';
 import Dashboard from './pages/Dashboard';
+import EmergencyButton from './components/emergency/EmergencyButton';
 
 // Protected Route Component - FIXED
 const ProtectedRoute = ({ children, requireOnboarding = true, requireFamily = true }) => {
@@ -71,45 +72,52 @@ const PublicRoute = ({ children }) => {
 };
 
 function AppContent() {
+  const { isAuthenticated } = useAuth();
+  
   return (
-    <Routes>
-      {/* Landing Page */}
-      <Route path="/" element={<LandingPage />} />
-      
-      {/* Auth Routes */}
-      <Route path="/login" element={
-        <PublicRoute>
-          <Login />
-        </PublicRoute>
-      } />
-      <Route path="/signup" element={
-        <PublicRoute>
-          <Signup />
-        </PublicRoute>
-      } />
+    <>
+      <Routes>
+        {/* Landing Page */}
+        <Route path="/" element={<LandingPage />} />
+        
+        {/* Auth Routes */}
+        <Route path="/login" element={
+          <PublicRoute>
+            <Login />
+          </PublicRoute>
+        } />
+        <Route path="/signup" element={
+          <PublicRoute>
+            <Signup />
+          </PublicRoute>
+        } />
 
-      {/* Protected Routes */}
-      <Route path="/family-choice" element={
-        <ProtectedRoute requireOnboarding={false} requireFamily={false}>
-          <FamilyChoice />
-        </ProtectedRoute>
-      } />
-      
-      <Route path="/onboarding" element={
-        <ProtectedRoute requireOnboarding={false} requireFamily={true}>
-          <OnboardingWizard />
-        </ProtectedRoute>
-      } />
-      
-      <Route path="/dashboard" element={
-        <ProtectedRoute requireOnboarding={true} requireFamily={true}>
-          <Dashboard />
-        </ProtectedRoute>
-      } />
+        {/* Protected Routes */}
+        <Route path="/family-choice" element={
+          <ProtectedRoute requireOnboarding={false} requireFamily={false}>
+            <FamilyChoice />
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/onboarding" element={
+          <ProtectedRoute requireOnboarding={false} requireFamily={true}>
+            <OnboardingWizard />
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/dashboard" element={
+          <ProtectedRoute requireOnboarding={true} requireFamily={true}>
+            <Dashboard />
+          </ProtectedRoute>
+        } />
 
-      {/* Catch all - redirect to home */}
-      <Route path="*" element={<Navigate to="/" />} />
-    </Routes>
+        {/* Catch all - redirect to home */}
+        <Route path="*" element={<Navigate to="/" />} />
+      </Routes>
+
+      {/* Emergency Button - Always visible when authenticated */}
+      {isAuthenticated && <EmergencyButton />}
+    </>
   );
 }
 

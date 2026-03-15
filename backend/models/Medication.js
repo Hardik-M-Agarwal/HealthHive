@@ -45,13 +45,17 @@ const medicationSchema = new mongoose.Schema({
       default: 1
     },
     interval: {
-      type: Number, // hours between doses
+      type: Number,
       min: 1
     }
   },
   schedule: [{
+    date: {
+      type: String,
+      required: true
+    },
     time: {
-      type: String, // Format: "HH:MM"
+      type: String,
       required: true
     },
     dosage: {
@@ -96,7 +100,6 @@ const medicationSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Index for faster queries
 medicationSchema.index({ userId: 1, familyId: 1, isActive: 1 });
 medicationSchema.index({ startDate: 1, endDate: 1 });
 

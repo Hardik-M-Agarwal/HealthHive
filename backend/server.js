@@ -15,6 +15,9 @@ const familyRoutes = require('./routes/familyRoutes');
 const onboardingRoutes = require('./routes/onboardingRoutes');
 const medicationRoutes = require('./routes/medicationRoutes');
 const geminiRoutes = require('./routes/geminiRoutes');
+const vitalsRoutes = require('./routes/vitalsRoutes');
+const appointmentRoutes = require('./routes/appointmentRoutes');
+const emergencyRoutes = require('./routes/emergencyRoutes');
 
 const app = express();
 
@@ -30,6 +33,9 @@ app.use('/api/family', familyRoutes);
 app.use('/api/onboarding', onboardingRoutes);
 app.use('/api/medications', medicationRoutes);
 app.use('/api/gemini', geminiRoutes);
+app.use('/api/vitals', vitalsRoutes);
+app.use('/api/appointments', appointmentRoutes);
+app.use('/api/emergency', emergencyRoutes);
 
 // Error handler
 app.use((err, req, res, next) => {
@@ -49,6 +55,13 @@ const server = app.listen(PORT, () => {
   } catch (error) {
     console.error('❌ Failed to start reminder service:', error);
   }
+
+  try {
+  require('./services/appointmentReminderService');
+  console.log('✅ Appointment reminder service initialized');
+} catch (error) {
+  console.error('❌ Failed to start appointment reminder service:', error);
+}
 });
 
 // Handle unhandled promise rejections

@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Sidebar from '../components/layout/Sidebar';
-import MedicationsView from '../components/medications/MedicationsView'; // Add this import
+import MedicationsView from '../components/medications/MedicationsView';
+import VitalsView from '../components/vitals/VitalsView';
+import AppointmentsView from '../components/appointments/AppointmentsView';
 import toast from 'react-hot-toast';
 import api from '../services/api';
 
@@ -19,10 +21,10 @@ const Dashboard = () => {
     const fetchFamilyData = async () => {
       try {
         setLoading(true);
-        
+
         const response = await api.get(`/family/${user.familyId}`);
         console.log('Family data:', response.data);
-        
+
         setFamilyDetails(response.data.family);
         setFamilyMembers(response.data.family.members || []);
       } catch (error) {
@@ -59,8 +61,8 @@ const Dashboard = () => {
   };
 
   const getRoleBadgeColor = (role) => {
-    return role === 'admin' 
-      ? 'bg-purple-100 text-purple-800 border-purple-200' 
+    return role === 'admin'
+      ? 'bg-purple-100 text-purple-800 border-purple-200'
       : 'bg-blue-100 text-blue-800 border-blue-200';
   };
 
@@ -83,7 +85,7 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-gray-50 flex">
       {/* Sidebar */}
-      <Sidebar 
+      <Sidebar
         activeTab={activeTab}
         onTabChange={setActiveTab}
         familyCode={familyDetails?.familyCode}
@@ -97,13 +99,15 @@ const Dashboard = () => {
           <div className="px-6 py-4">
             <div className="flex items-center justify-between">
               <h1 className="text-2xl font-bold text-gray-900">
-                {activeTab === 'dashboard' ? 'Dashboard' : 
-                 activeTab === 'members' ? 'Family Members' :
-                 activeTab === 'medications' ? 'Medications' :
-                 activeTab === 'health-records' ? 'Health Records' :
-                 activeTab === 'appointments' ? 'Appointments' : 'Dashboard'}
+                {activeTab === 'dashboard' ? 'Dashboard' :
+                  activeTab === 'members' ? 'Family Members' :
+                    activeTab === 'medications' ? 'Medications' :
+                      activeTab === 'vitals' ? 'Vitals Tracker' :
+                        activeTab === 'appointments' ? 'Appointments' :
+                          activeTab === 'health-records' ? 'Health Records' :
+                            activeTab === 'appointments' ? 'Appointments' : 'Dashboard'}
               </h1>
-              
+
               {/* Notification Bell */}
               <button className="relative p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -146,7 +150,7 @@ const Dashboard = () => {
                       {familyMembers.length} {familyMembers.length === 1 ? 'Member' : 'Members'}
                     </p>
                   </div>
-                  
+
                   {/* Only show invite button for admin */}
                   {user?.role === 'admin' && (
                     <button className="px-4 py-2 bg-gradient-to-r from-blue-600 to-cyan-500 text-white rounded-xl hover:shadow-lg transition-all duration-300 flex items-center gap-2">
@@ -186,7 +190,7 @@ const Dashboard = () => {
                         <div className="flex-1">
                           <h3 className="font-semibold text-gray-900 text-lg">{member.name}</h3>
                           <p className="text-sm text-gray-500 mb-2">{member.email}</p>
-                          
+
                           {/* Role badge */}
                           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getRoleBadgeColor(member.role)}`}>
                             {member.role === 'admin' ? 'Family Admin' : 'Member'}
@@ -225,6 +229,14 @@ const Dashboard = () => {
 
           {activeTab === 'medications' && (
             <MedicationsView />
+          )}
+
+          {activeTab === 'vitals' && (
+            <VitalsView />
+          )}
+
+          {activeTab === 'appointments' && (
+            <AppointmentsView />
           )}
         </main>
       </div>

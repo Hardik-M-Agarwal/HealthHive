@@ -15,7 +15,6 @@ const addMedication = async (req, res) => {
     const userId = req.user.id;
     const familyId = req.user.familyId;
 
-    // Generate schedule based on frequency
     const schedule = generateSchedule(req.body);
 
     const medication = await Medication.create({
@@ -41,16 +40,26 @@ const addMedication = async (req, res) => {
 const getMedications = async (req, res) => {
   try {
     const { familyId } = req.user;
-    const { status, category, member } = req.query;
+    const { category, member } = req.query;
 
-    let query = { familyId };
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
     
-    if (status === 'active') {
-      query.isActive = true;
-      query.endDate = { $gte: new Date() };
-    } else if (status === 'inactive') {
-      query.isActive = false;
-    }
+    // Also get tomorrow's date for end date comparison
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    let query = { 
+      familyId,
+      isActive: true,
+      // Include medications that started today or earlier
+      // Use $lte with end of day to handle timezone issues
+      startDate: { $lte: new Date(today.setHours(23, 59, 59, 999)) },
+      $or: [
+        { endDate: { $gte: today } },
+        { endDate: null }
+      ]
+    };
 
     if (category) {
       query.category = category;
@@ -64,7 +73,7 @@ const getMedications = async (req, res) => {
       .populate('userId', 'name email')
       .sort({ createdAt: -1 });
 
-    // Calculate adherence for each medication
+
     const medicationsWithAdherence = await Promise.all(
       medications.map(async (med) => {
         const adherence = await calculateAdherence(med._id);
@@ -97,12 +106,10 @@ const getMedicationById = async (req, res) => {
       return res.status(404).json({ message: 'Medication not found' });
     }
 
-    // Check authorization
     if (medication.familyId.toString() !== req.user.familyId) {
       return res.status(403).json({ message: 'Not authorized' });
     }
 
-    // Get logs for this medication
     const logs = await MedicationLog.find({ medicationId: medication._id })
       .sort({ scheduledDate: -1 })
       .limit(30);
@@ -132,12 +139,10 @@ const updateMedication = async (req, res) => {
       return res.status(404).json({ message: 'Medication not found' });
     }
 
-    // Check authorization
     if (medication.familyId.toString() !== req.user.familyId) {
       return res.status(403).json({ message: 'Not authorized' });
     }
 
-    // Regenerate schedule if frequency or dates changed
     if (req.body.frequency || req.body.startDate || req.body.endDate) {
       req.body.schedule = generateSchedule({ ...medication.toObject(), ...req.body });
     }
@@ -170,26 +175,22 @@ const markAsTaken = async (req, res) => {
       return res.status(404).json({ message: 'Medication not found' });
     }
 
-    // Check if user has familyId
     if (!req.user.familyId) {
       return res.status(403).json({ message: 'User does not belong to any family' });
     }
 
-    // Check authorization - compare as strings
     if (medication.familyId.toString() !== req.user.familyId.toString()) {
       return res.status(403).json({ message: 'Not authorized to access this medication' });
     }
 
-    // Find the schedule entry
     const scheduleEntry = medication.schedule.find(
-      s => s.time === scheduledTime
+      s => s.time === scheduledTime && s.date === scheduledDate
     );
 
     if (!scheduleEntry) {
-      return res.status(400).json({ message: 'Invalid schedule time' });
+      return res.status(400).json({ message: 'Invalid schedule time for this date' });
     }
 
-    // Create log entry
     const log = await MedicationLog.create({
       medicationId: medication._id,
       userId: medication.userId,
@@ -202,13 +203,11 @@ const markAsTaken = async (req, res) => {
       takenBy: req.user.id
     });
 
-    // Update schedule entry
     scheduleEntry.taken = true;
     scheduleEntry.takenAt = new Date();
     
     await medication.save();
 
-    // Calculate updated adherence
     const adherence = await calculateAdherence(medication._id);
 
     res.json({
@@ -222,66 +221,81 @@ const markAsTaken = async (req, res) => {
   }
 };
 
+
 // @desc    Get medication analytics
 // @route   GET /api/medications/analytics
 // @access  Private
 const getAnalytics = async (req, res) => {
   try {
     const { familyId } = req.user;
-    const { startDate, endDate, member } = req.query;
+    const { member } = req.query;
 
-    let query = { familyId };
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Only get active medications (within date range)
+    let query = { 
+      familyId,
+      isActive: true,
+      startDate: { $lte: today },
+      $or: [
+        { endDate: { $gte: today } },
+        { endDate: null }
+      ]
+    };
+
     if (member) {
       query.userId = member;
     }
 
     const medications = await Medication.find(query);
 
-    let dateRange = {};
-    if (startDate && endDate) {
-      dateRange = {
-        scheduledDate: {
-          $gte: new Date(startDate),
-          $lte: new Date(endDate)
-        }
-      };
-    }
+    // Get today's date in YYYY-MM-DD format
+    const todayStr = today.toISOString().split('T')[0];
 
+    // Calculate analytics for active medications only
     const analytics = await Promise.all(
       medications.map(async (med) => {
+        // Get today's schedule for this medication
+        const todaySchedule = med.schedule.filter(s => s.date === todayStr);
+        
+        // Count taken doses for today
+        const takenToday = todaySchedule.filter(s => s.taken).length;
+        
+        // Get all logs for this medication (for overall adherence)
         const logs = await MedicationLog.find({
-          medicationId: med._id,
-          ...dateRange
+          medicationId: med._id
         });
 
-        const taken = logs.filter(l => l.status === 'taken').length;
-        const total = logs.length;
+        const totalDoses = med.schedule.length;
+        const takenDoses = logs.filter(l => l.status === 'taken').length;
 
         return {
           medicationId: med._id,
           medicineName: med.medicineName,
-          total,
-          taken,
-          adherence: total > 0 ? (taken / total) * 100 : 0
+          totalDoses: todaySchedule.length,
+          takenToday,
+          adherence: totalDoses > 0 ? (takenDoses / totalDoses) * 100 : 0
         };
       })
     );
 
-    // Family-wide stats
-    const totalDoses = analytics.reduce((acc, curr) => acc + curr.total, 0);
-    const totalTaken = analytics.reduce((acc, curr) => acc + curr.taken, 0);
-    const overallAdherence = totalDoses > 0 ? (totalTaken / totalDoses) * 100 : 0;
+    // Calculate summary stats for active medications only
+    const totalMedications = medications.length;
+    const totalDosesToday = analytics.reduce((acc, curr) => acc + curr.totalDoses, 0);
+    const totalTakenToday = analytics.reduce((acc, curr) => acc + curr.takenToday, 0);
+    
+    // Calculate overall adherence (average)
+    const avgAdherence = analytics.reduce((acc, curr) => acc + curr.adherence, 0) / (totalMedications || 1);
 
     res.json({
       success: true,
       analytics,
       summary: {
-        totalMedications: medications.length,
-        totalDoses,
-        totalTaken,
-        overallAdherence,
-        startDate,
-        endDate
+        totalMedications,
+        totalDoses: totalDosesToday,
+        totalTaken: totalTakenToday,
+        overallAdherence: avgAdherence
       }
     });
   } catch (error) {
@@ -301,12 +315,10 @@ const deleteMedication = async (req, res) => {
       return res.status(404).json({ message: 'Medication not found' });
     }
 
-    // Check authorization
     if (medication.familyId.toString() !== req.user.familyId) {
       return res.status(403).json({ message: 'Not authorized' });
     }
 
-    // Soft delete - just mark as inactive
     medication.isActive = false;
     await medication.save();
 
@@ -320,28 +332,71 @@ const deleteMedication = async (req, res) => {
   }
 };
 
+// @desc    Get all medication logs for family
+// @route   GET /api/medications/logs/all
+// @access  Private
+const getAllLogs = async (req, res) => {
+  try {
+    const { familyId } = req.user;
+    const { startDate, endDate, member } = req.query;
+
+    let query = { familyId };
+    
+    // Filter by date range if provided
+    if (startDate && endDate) {
+      query.scheduledDate = {
+        $gte: new Date(startDate),
+        $lte: new Date(endDate)
+      };
+    }
+
+    // Filter by specific member if provided
+    if (member && member !== 'all') {
+      query.userId = member;
+    }
+
+    const logs = await MedicationLog.find(query)
+      .populate('userId', 'name email')
+      .populate('takenBy', 'name')
+      .populate('medicationId', 'medicineName dosage frequency')
+      .sort({ scheduledDate: -1, scheduledTime: -1 });
+
+    res.json({
+      success: true,
+      logs,
+      total: logs.length
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
 // Helper Functions
 
 const generateSchedule = (data) => {
   const schedule = [];
-  const { frequency, startDate, endDate, dosage, timeOfDay } = data; // Fixed: added timeOfDay
+  const { frequency, startDate, endDate, dosage, timeOfDay } = data;
   
   const start = new Date(startDate);
+  start.setHours(0, 0, 0, 0);
+  
   const end = endDate ? new Date(endDate) : new Date(start);
-  end.setMonth(end.getMonth() + 3); // Default to 3 months if no end date
+  end.setMonth(end.getMonth() + 3);
+  end.setHours(0, 0, 0, 0);
 
   const days = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
 
-  // Generate daily schedule
   for (let i = 0; i < days; i++) {
     const currentDate = new Date(start);
     currentDate.setDate(start.getDate() + i);
+    const dateStr = currentDate.toISOString().split('T')[0];
 
-    // Generate times based on frequency
     const times = generateTimes(frequency, timeOfDay);
     
     times.forEach(time => {
       schedule.push({
+        date: dateStr,
         time,
         dosage,
         taken: false
@@ -358,9 +413,7 @@ const generateTimes = (frequency, timeOfDay) => {
   if (frequency.type === 'daily') {
     const timesPerDay = frequency.timesPerDay || 1;
     
-    // If timeOfDay is selected, use those specific times
     if (timeOfDay && timeOfDay.length > 0) {
-      // Map timeOfDay to actual times
       const timeMap = {
         'morning': '10:00',
         'afternoon': '14:00',
@@ -374,7 +427,6 @@ const generateTimes = (frequency, timeOfDay) => {
         }
       });
     } else {
-      // Fallback to interval-based times
       const interval = 24 / timesPerDay;
       for (let i = 0; i < timesPerDay; i++) {
         const hour = Math.floor(i * interval);
@@ -422,5 +474,6 @@ module.exports = {
   updateMedication,
   markAsTaken,
   getAnalytics,
-  deleteMedication
+  deleteMedication,
+  getAllLogs
 };

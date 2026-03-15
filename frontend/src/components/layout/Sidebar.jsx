@@ -54,15 +54,15 @@ const Sidebar = ({ activeTab, onTabChange, familyCode, familyName }) => {
       disabled: false // Enabled now
     },
     {
-      id: 'health-records',
-      label: 'Health Records',
+      id: 'vitals',
+      label: 'Vitals Tracker',
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
         </svg>
       ),
       color: 'from-green-600 to-emerald-500',
-      disabled: true
+      disabled: false
     },
     {
       id: 'appointments',
@@ -72,7 +72,18 @@ const Sidebar = ({ activeTab, onTabChange, familyCode, familyName }) => {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
         </svg>
       ),
-      color: 'from-yellow-600 to-amber-500',
+      color: 'from-purple-600 to-indigo-600',
+      disabled: false
+    },
+    {
+      id: 'health-records',
+      label: 'Health Records',
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+        </svg>
+      ),
+      color: 'from-green-600 to-emerald-500',
       disabled: true
     }
   ];
@@ -84,10 +95,10 @@ const Sidebar = ({ activeTab, onTabChange, familyCode, familyName }) => {
         onClick={() => setCollapsed(!collapsed)}
         className="absolute -right-3 top-10 bg-white rounded-full p-1.5 shadow-md hover:shadow-lg transition-all border border-gray-200 z-10"
       >
-        <svg 
-          className={`w-4 h-4 text-gray-600 transition-transform duration-300 ${collapsed ? 'rotate-180' : ''}`} 
-          fill="none" 
-          stroke="currentColor" 
+        <svg
+          className={`w-4 h-4 text-gray-600 transition-transform duration-300 ${collapsed ? 'rotate-180' : ''}`}
+          fill="none"
+          stroke="currentColor"
           viewBox="0 0 24 24"
         >
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -118,7 +129,7 @@ const Sidebar = ({ activeTab, onTabChange, familyCode, familyName }) => {
             <p className="text-xs text-gray-500 mb-1">Family Code</p>
             <div className="flex items-center justify-between">
               <span className="text-sm font-mono font-medium text-gray-700">{familyCode}</span>
-              <button 
+              <button
                 onClick={() => navigator.clipboard.writeText(familyCode)}
                 className="text-gray-400 hover:text-blue-600 transition-colors"
                 title="Copy code"
@@ -140,13 +151,12 @@ const Sidebar = ({ activeTab, onTabChange, familyCode, familyName }) => {
               key={item.id}
               onClick={() => !item.disabled && onTabChange(item.id)}
               disabled={item.disabled}
-              className={`w-full flex items-center ${collapsed ? 'justify-center' : 'space-x-3'} px-3 py-3 rounded-xl transition-all duration-200 relative group ${
-                activeTab === item.id
-                  ? `bg-gradient-to-r ${item.color} text-white shadow-lg`
-                  : item.disabled
+              className={`w-full flex items-center ${collapsed ? 'justify-center' : 'space-x-3'} px-3 py-3 rounded-xl transition-all duration-200 relative group ${activeTab === item.id
+                ? `bg-gradient-to-r ${item.color} text-white shadow-lg`
+                : item.disabled
                   ? 'text-gray-300 cursor-not-allowed'
                   : 'text-gray-600 hover:bg-gray-100'
-              }`}
+                }`}
             >
               <span className="flex-shrink-0">{item.icon}</span>
               {!collapsed && (
@@ -157,7 +167,7 @@ const Sidebar = ({ activeTab, onTabChange, familyCode, familyName }) => {
                   Soon
                 </span>
               )}
-              
+
               {/* Tooltip for collapsed mode */}
               {collapsed && !item.disabled && (
                 <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20">
@@ -182,7 +192,7 @@ const Sidebar = ({ activeTab, onTabChange, familyCode, familyName }) => {
             </div>
           )}
         </div>
-        
+
         {/* Logout button */}
         <button
           onClick={handleLogout}
@@ -192,7 +202,7 @@ const Sidebar = ({ activeTab, onTabChange, familyCode, familyName }) => {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
           </svg>
           {!collapsed && <span>Logout</span>}
-          
+
           {/* Tooltip for collapsed mode */}
           {collapsed && (
             <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">

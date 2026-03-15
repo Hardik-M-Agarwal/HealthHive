@@ -87,6 +87,17 @@ const medicationService = {
       console.error('Error in getFamilyMembers:', error);
       throw error;
     }
+  },
+
+  //GET ALL LOGS
+  async getAllLogs(params = {}) {
+    try {
+      const response = await api.get('/medications/logs/all', { params });
+      return response.data;
+    } catch (error) {
+      console.error('Error in getAllLogs:', error);
+      throw error;
+    }
   }
 };
 

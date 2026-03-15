@@ -8,7 +8,8 @@ const {
   updateMedication,
   markAsTaken,
   getAnalytics,
-  deleteMedication
+  deleteMedication,
+  getAllLogs // Add this import
 } = require('../controllers/medicationController');
 const { protect } = require('../middleware/authMiddleware');
 
@@ -22,6 +23,7 @@ const medicationValidation = [
 ];
 
 // Routes (all protected)
+router.get('/logs/all', protect, getAllLogs); // Add this new route
 router.get('/analytics', protect, getAnalytics);
 router.post('/', protect, medicationValidation, addMedication);
 router.get('/', protect, getMedications);
