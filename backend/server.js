@@ -19,6 +19,7 @@ const vitalsRoutes = require('./routes/vitalsRoutes');
 const appointmentRoutes = require('./routes/appointmentRoutes');
 const emergencyRoutes = require('./routes/emergencyRoutes');
 const healthReportRoutes = require('./routes/healthReportRoutes');
+const documentRoutes = require('./routes/documentRoutes');
 
 const app = express();
 
@@ -38,6 +39,8 @@ app.use('/api/vitals', vitalsRoutes);
 app.use('/api/appointments', appointmentRoutes);
 app.use('/api/emergency', emergencyRoutes);
 app.use('/api/health-reports', healthReportRoutes);
+app.use('/api/documents', documentRoutes);
+app.use('/uploads', express.static('uploads'));
 
 // Error handler
 app.use((err, req, res, next) => {

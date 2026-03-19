@@ -6,6 +6,7 @@ import MedicationsView from '../components/medications/MedicationsView';
 import VitalsView from '../components/vitals/VitalsView';
 import AppointmentsView from '../components/appointments/AppointmentsView';
 import HealthReportsView from '../components/health-reports/HealthReportsView';
+import DocumentsView from '../components/documents/DocumentsView';
 import toast from 'react-hot-toast';
 import api from '../services/api';
 
@@ -105,9 +106,9 @@ const Dashboard = () => {
                     activeTab === 'medications' ? 'Medications' :
                       activeTab === 'vitals' ? 'Vitals Tracker' :
                         activeTab === 'appointments' ? 'Appointments' :
-                        activeTab === 'health-reports' ? 'Health Reports' :
-                          activeTab === 'health-records' ? 'Health Records' :
-                            activeTab === 'appointments' ? 'Appointments' : 'Dashboard'}
+                          activeTab === 'health-reports' ? 'Health Reports' :
+                            activeTab === 'health-records' ? 'Health Records' :
+                              activeTab === 'appointments' ? 'Appointments' : 'Dashboard'}
               </h1>
 
               {/* Notification Bell */}
@@ -242,8 +243,12 @@ const Dashboard = () => {
           )}
 
           {activeTab === 'health-reports' && (
-  <HealthReportsView />
-)}
+            <HealthReportsView />
+          )}
+
+          {activeTab === 'documents' && (
+            <DocumentsView />
+          )}
         </main>
       </div>
     </div>
