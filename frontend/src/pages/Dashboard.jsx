@@ -5,6 +5,7 @@ import Sidebar from '../components/layout/Sidebar';
 import MedicationsView from '../components/medications/MedicationsView';
 import VitalsView from '../components/vitals/VitalsView';
 import AppointmentsView from '../components/appointments/AppointmentsView';
+import HealthReportsView from '../components/health-reports/HealthReportsView';
 import toast from 'react-hot-toast';
 import api from '../services/api';
 
@@ -104,6 +105,7 @@ const Dashboard = () => {
                     activeTab === 'medications' ? 'Medications' :
                       activeTab === 'vitals' ? 'Vitals Tracker' :
                         activeTab === 'appointments' ? 'Appointments' :
+                        activeTab === 'health-reports' ? 'Health Reports' :
                           activeTab === 'health-records' ? 'Health Records' :
                             activeTab === 'appointments' ? 'Appointments' : 'Dashboard'}
               </h1>
@@ -238,6 +240,10 @@ const Dashboard = () => {
           {activeTab === 'appointments' && (
             <AppointmentsView />
           )}
+
+          {activeTab === 'health-reports' && (
+  <HealthReportsView />
+)}
         </main>
       </div>
     </div>

@@ -1,6 +1,6 @@
-const axios = require('axios');
+const geminiService = require('../services/geminiService');
 
-// @desc    Explain medicine using Gemini API
+// @desc    Explain medicine using Gemini API with fallbacks
 // @route   POST /api/gemini/explain
 // @access  Private
 const explainMedicine = async (req, res) => {
@@ -8,59 +8,56 @@ const explainMedicine = async (req, res) => {
     const { medicineName } = req.body;
 
     if (!medicineName) {
-      return res.status(400).json({ message: 'Medicine name is required' });
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Medicine name is required' 
+      });
     }
 
-    console.log(`Explaining medicine: ${medicineName}`);
+    console.log(`📝 Explaining medicine: ${medicineName}`);
 
-    // Construct the prompt
-    const prompt = `Explain ${medicineName} in simple language in 2 lines. Keep it very simple and easy to understand.`;
+    const result = await geminiService.explainMedicine(medicineName);
 
-    // Using gemini-2.0-flash from your available models list
-    const response = await axios.post(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
-      {
-        contents: [
-          {
-            parts: [
-              {
-                text: prompt
-              }
-            ]
-          }
-        ]
-      },
-      {
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      }
-    );
-
-    // Extract the explanation from Gemini response
-    const explanation = response.data.candidates[0]?.content?.parts[0]?.text;
-
-    if (!explanation) {
-      return res.status(500).json({ message: 'No explanation received from Gemini' });
-    }
-
-    res.json({
-      success: true,
-      medicineName,
-      explanation
-    });
+    res.json(result);
 
   } catch (error) {
-    console.error('Gemini API error:', error.response?.data || error.message);
+    console.error('❌ Gemini controller error:', error);
     
-    const errorMessage = error.response?.data?.error?.message || error.message;
     res.status(500).json({ 
       success: false, 
-      message: `Gemini API error: ${errorMessage}` 
+      message: 'Failed to get medicine explanation',
+      fallback: geminiService.getFallbackResponse(req.body.medicineName).explanation
+    });
+  }
+};
+
+// @desc    Explain multiple medicines
+// @route   POST /api/gemini/explain-many
+// @access  Private
+const explainMedicines = async (req, res) => {
+  try {
+    const { medicineNames } = req.body;
+
+    if (!medicineNames || !Array.isArray(medicineNames)) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Medicine names array is required' 
+      });
+    }
+
+    const results = await geminiService.explainMedicines(medicineNames);
+    res.json(results);
+
+  } catch (error) {
+    console.error('❌ Batch explain error:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Failed to process batch explanation' 
     });
   }
 };
 
 module.exports = {
-  explainMedicine
+  explainMedicine,
+  explainMedicines
 };

@@ -18,6 +18,7 @@ const geminiRoutes = require('./routes/geminiRoutes');
 const vitalsRoutes = require('./routes/vitalsRoutes');
 const appointmentRoutes = require('./routes/appointmentRoutes');
 const emergencyRoutes = require('./routes/emergencyRoutes');
+const healthReportRoutes = require('./routes/healthReportRoutes');
 
 const app = express();
 
@@ -36,6 +37,7 @@ app.use('/api/gemini', geminiRoutes);
 app.use('/api/vitals', vitalsRoutes);
 app.use('/api/appointments', appointmentRoutes);
 app.use('/api/emergency', emergencyRoutes);
+app.use('/api/health-reports', healthReportRoutes);
 
 // Error handler
 app.use((err, req, res, next) => {

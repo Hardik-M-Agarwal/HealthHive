@@ -1,5 +1,6 @@
 const Vitals = require('../models/Vitals');
 const User = require('../models/User');
+const geminiService = require('../services/geminiService');
 const { validationResult } = require('express-validator');
 
 // Helper function to detect abnormal values
@@ -135,7 +136,8 @@ const getMyChartData = async (req, res) => {
       success: true,
       type,
       days: parseInt(days),
-      data: chartData
+      data: chartData,
+      totalReadings: chartData.length
     });
   } catch (error) {
     console.error(error);
@@ -143,13 +145,20 @@ const getMyChartData = async (req, res) => {
   }
 };
 
-// @desc    Analyze current user's vitals trend using Gemini
+// @desc    Analyze current user's vitals trend using Gemini with fallbacks
 // @route   POST /api/vitals/analyze-my-trend
 // @access  Private
 const analyzeMyTrend = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { vitalsType, days = 10 } = req.body;
+    const { vitalsType, days = 30 } = req.body;
+
+    if (!vitalsType) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Vitals type is required' 
+      });
+    }
 
     const date = new Date();
     date.setDate(date.getDate() - parseInt(days));
@@ -161,67 +170,118 @@ const analyzeMyTrend = async (req, res) => {
     }).sort({ timestamp: 1 });
 
     if (vitals.length === 0) {
-      return res.status(404).json({ message: 'No data found for analysis' });
+      return res.status(404).json({ 
+        success: false, 
+        message: 'No data found for analysis. Start by adding some vitals readings!' 
+      });
     }
 
     // Format data for Gemini
     const dataPoints = vitals.map(v => {
+      const dateStr = v.timestamp.toISOString().split('T')[0];
       if (vitalsType === 'bp') {
-        return `${v.timestamp.toISOString().split('T')[0]}: ${v.value.systolic}/${v.value.diastolic} mmHg`;
+        return `${dateStr}: ${v.value.systolic}/${v.value.diastolic} mmHg`;
       }
-      return `${v.timestamp.toISOString().split('T')[0]}: ${v.value} ${v.unit}`;
+      return `${dateStr}: ${v.value} ${v.unit}`;
     }).join('\n');
 
-    const vitalsTypeDisplay = {
-      'bp': 'Blood Pressure',
-      'sugar': 'Blood Sugar',
-      'weight': 'Weight',
-      'pulse': 'Pulse Rate',
-      'temperature': 'Temperature'
-    }[vitalsType];
+    const result = await geminiService.analyzeVitalsTrend(vitalsType, dataPoints, days);
 
-    const prompt = `Analyze this ${vitalsTypeDisplay} trend from the last ${days} days and explain it in simple, easy-to-understand language for a patient:\n\n${dataPoints}\n\nProvide insights on patterns, abnormalities, and general health implications. Keep it encouraging and actionable.`;
+    // Add reading count to response
+    const responseData = {
+      success: true,
+      analysis: result.analysis,
+      dataPoints: vitals.length,
+      model: result.model || 'gemini',
+      readingCount: vitals.length
+    };
 
-    // Call Gemini API
-    const axios = require('axios');
-    const response = await axios.post(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+    // If using fallback, indicate that
+    if (result.model === 'fallback') {
+      responseData.note = 'Using enhanced statistical analysis while AI is unavailable';
+    }
+
+    res.json(responseData);
+
+  } catch (error) {
+    console.error('Vitals analysis error:', error);
+    
+    // Try to get reading count even on error
+    let readingCount = 0;
+    try {
+      const userId = req.user.id;
+      const { vitalsType, days = 30 } = req.body;
+      const date = new Date();
+      date.setDate(date.getDate() - parseInt(days));
+      
+      readingCount = await Vitals.countDocuments({
+        userId,
+        vitalsType,
+        timestamp: { $gte: date }
+      });
+    } catch (e) {
+      // Ignore count error
+    }
+    
+    // Return a friendly fallback even on error
+    res.status(500).json({ 
+      success: false, 
+      message: 'Unable to analyze trend at this moment',
+      fallback: readingCount > 0 
+        ? `You have ${readingCount} reading${readingCount !== 1 ? 's' : ''} recorded. Please try again in a few moments for AI-powered insights, or continue tracking to build more data.`
+        : 'Start by adding some vitals readings to see trends and analysis!',
+      readingCount: readingCount
+    });
+  }
+};
+
+// @desc    Get summary statistics for current user
+// @route   GET /api/vitals/summary
+// @access  Private
+const getVitalsSummary = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { days = 30 } = req.query;
+
+    const date = new Date();
+    date.setDate(date.getDate() - parseInt(days));
+
+    // Get counts by type
+    const summary = await Vitals.aggregate([
       {
-        contents: [
-          {
-            parts: [
-              {
-                text: prompt
-              }
-            ]
-          }
-        ]
+        $match: {
+          userId: userId,
+          timestamp: { $gte: date }
+        }
       },
       {
-        headers: {
-          'Content-Type': 'application/json'
+        $group: {
+          _id: "$vitalsType",
+          count: { $sum: 1 },
+          abnormalCount: {
+            $sum: { $cond: ["$abnormalFlag", 1, 0] }
+          }
         }
       }
-    );
+    ]);
 
-    const analysis = response.data.candidates[0]?.content?.parts[0]?.text;
-
-    if (!analysis) {
-      return res.status(500).json({ message: 'No analysis received from Gemini' });
-    }
+    // Format response
+    const formattedSummary = {};
+    summary.forEach(item => {
+      formattedSummary[item._id] = {
+        total: item.count,
+        abnormal: item.abnormalCount
+      };
+    });
 
     res.json({
       success: true,
-      analysis,
-      dataPoints: vitals.length
+      days: parseInt(days),
+      summary: formattedSummary
     });
-
   } catch (error) {
-    console.error('Gemini API error:', error.response?.data || error.message);
-    res.status(500).json({ 
-      success: false, 
-      message: error.response?.data?.error?.message || 'Failed to analyze trend'
-    });
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
   }
 };
 
@@ -229,5 +289,6 @@ module.exports = {
   addVitals,
   getMyVitals,
   getMyChartData,
-  analyzeMyTrend
+  analyzeMyTrend,
+  getVitalsSummary
 };
