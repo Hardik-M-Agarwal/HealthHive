@@ -4,7 +4,7 @@ const fs = require('fs').promises;
 const path = require('path');
 const pdf = require('pdf-parse');
 const Tesseract = require('tesseract.js');
-const axios = require('axios');
+const geminiService = require('../services/geminiService'); // Import the service
 
 // @desc    Upload and process health report
 // @route   POST /api/health-reports/upload
@@ -54,10 +54,10 @@ const uploadHealthReport = async (req, res) => {
 
     console.log('Text extracted successfully, length:', extractedText.length);
 
-    // Send to Gemini for analysis
-    const geminiResponse = await analyzeWithGemini(extractedText, fileName);
+    // Send to Gemini for analysis using the service
+    const geminiResponse = await analyzeWithGeminiService(extractedText, fileName);
 
-    // Create file URL (you might want to upload to cloud storage in production)
+    // Create file URL
     const fileUrl = `/uploads/${path.basename(filePath)}`;
 
     // Save to database
@@ -211,8 +211,8 @@ const deleteReport = async (req, res) => {
   }
 };
 
-// Helper function to analyze with Gemini
-async function analyzeWithGemini(text, fileName) {
+// NEW: Helper function to analyze with Gemini Service
+async function analyzeWithGeminiService(text, fileName) {
   try {
     const prompt = `You are a medical report analyzer. Analyze this medical report and provide:
 1. A simple, easy-to-understand explanation of what the report means (max 200 words)
@@ -238,37 +238,22 @@ Format your response as JSON with the following structure:
 If no abnormal markers are found, return an empty array for abnormalMarkers.
 
 Report file name: ${fileName}
-Report text: ${text.substring(0, 3000)}`; // Limit text to 3000 chars
+Report text: ${text.substring(0, 3000)}`;
 
-    const response = await axios.post(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
-      {
-        contents: [
-          {
-            parts: [
-              {
-                text: prompt
-              }
-            ]
-          }
-        ]
-      },
-      {
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      }
-    );
+    // Use the geminiService instead of direct axios call
+    const result = await geminiService.generateContent(prompt, {
+      temperature: 0.3,
+      maxOutputTokens: 2048
+    });
 
-    const analysisText = response.data.candidates[0]?.content?.parts[0]?.text;
-    
-    if (!analysisText) {
-      throw new Error('No analysis received from Gemini');
+    if (!result.success || !result.text) {
+      throw new Error('Failed to get analysis from Gemini');
     }
 
     // Extract JSON from response (Gemini might wrap in markdown)
-    const jsonMatch = analysisText.match(/\{[\s\S]*\}/);
+    const jsonMatch = result.text.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
+      console.log('Raw Gemini response:', result.text);
       throw new Error('Could not parse Gemini response');
     }
 
@@ -276,7 +261,8 @@ Report text: ${text.substring(0, 3000)}`; // Limit text to 3000 chars
     
     return {
       explanation: analysis.explanation || 'Could not generate explanation',
-      abnormalMarkers: analysis.abnormalMarkers || []
+      abnormalMarkers: analysis.abnormalMarkers || [],
+      model: result.model
     };
 
   } catch (error) {
@@ -290,7 +276,7 @@ Report text: ${text.substring(0, 3000)}`; // Limit text to 3000 chars
   }
 }
 
-// Helper to detect test type
+// Helper to detect test type (unchanged)
 function detectTestType(text, fileName) {
   const lowerText = text.toLowerCase();
   const lowerFileName = fileName.toLowerCase();
