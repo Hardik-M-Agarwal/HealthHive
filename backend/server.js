@@ -20,6 +20,7 @@ const appointmentRoutes = require('./routes/appointmentRoutes');
 const emergencyRoutes = require('./routes/emergencyRoutes');
 const healthReportRoutes = require('./routes/healthReportRoutes');
 const documentRoutes = require('./routes/documentRoutes');
+const dashboardRoutes = require('./routes/dashboardRoutes');
 
 const app = express();
 
@@ -41,6 +42,7 @@ app.use('/api/emergency', emergencyRoutes);
 app.use('/api/health-reports', healthReportRoutes);
 app.use('/api/documents', documentRoutes);
 app.use('/uploads', express.static('uploads'));
+app.use('/api/dashboard', dashboardRoutes);
 
 // Error handler
 app.use((err, req, res, next) => {
