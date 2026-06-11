@@ -38,9 +38,7 @@ const MedicationsView = () => {
     try {
       setLoading(true);
       const params = {};
-      if (selectedMember !== 'all') {
-        params.member = selectedMember;
-      }
+      if (selectedMember !== 'all') params.member = selectedMember;
       const response = await medicationService.getMedications(params);
       setMedications(response.medications || []);
     } catch (error) {
@@ -54,9 +52,7 @@ const MedicationsView = () => {
   const fetchAnalytics = async () => {
     try {
       const params = {};
-      if (selectedMember !== 'all') {
-        params.member = selectedMember;
-      }
+      if (selectedMember !== 'all') params.member = selectedMember;
       const response = await medicationService.getAnalytics(params);
       setAnalytics(response);
     } catch (error) {
@@ -80,26 +76,14 @@ const MedicationsView = () => {
   const handleMarkAsTaken = async (medicationId, scheduledTime) => {
     try {
       const today = new Date().toISOString().split('T')[0];
-      
       const medication = medications.find(m => m._id === medicationId);
-      if (!medication) {
-        toast.error('Medication not found');
-        return;
-      }
-      
+      if (!medication) { toast.error('Medication not found'); return; }
       const todaySchedule = getTodaySchedule(medication);
-      const isValidForToday = todaySchedule.some(s => s.time === scheduledTime);
-      
-      if (!isValidForToday) {
+      if (!todaySchedule.some(s => s.time === scheduledTime)) {
         toast.error('This medication is not scheduled for today');
         return;
       }
-      
-      await medicationService.markAsTaken(medicationId, {
-        scheduledTime,
-        scheduledDate: today
-      });
-      
+      await medicationService.markAsTaken(medicationId, { scheduledTime, scheduledDate: today });
       toast.success('Marked as taken!');
       fetchMedications();
       fetchAnalytics();
@@ -127,7 +111,7 @@ const MedicationsView = () => {
   const getAdherenceColor = (percentage) => {
     if (percentage >= 80) return 'text-green-600 bg-green-100';
     if (percentage >= 50) return 'text-yellow-600 bg-yellow-100';
-    return 'text-red-600 bg-red-100';
+    return 'text-red-500 bg-red-100';
   };
 
   const getTodaySchedule = (medication) => {
@@ -138,52 +122,29 @@ const MedicationsView = () => {
 
   const formatDate = (dateString) => {
     if (!dateString) return 'No end date';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { 
-      year: 'numeric', 
-      month: 'short', 
-      day: 'numeric' 
-    });
+    return new Date(dateString).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
   };
 
   const getDayStatus = (startDate, endDate) => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    
     const start = new Date(startDate);
     start.setHours(0, 0, 0, 0);
-    
     const todayStr = today.toDateString();
-    
-    if (todayStr === start.toDateString()) {
-      return { text: 'Starting Today', color: 'text-green-600 bg-green-50' };
-    }
-    
+
+    if (todayStr === start.toDateString()) return { text: 'Starting Today', color: 'text-green-600 bg-green-50' };
     if (endDate) {
       const end = new Date(endDate);
       end.setHours(0, 0, 0, 0);
-      
-      if (todayStr === end.toDateString()) {
-        return { text: 'Ends Today', color: 'text-orange-600 bg-orange-50' };
-      }
-      
-      if (today > end) {
-        return { text: 'Completed', color: 'text-gray-500 bg-gray-100' };
-      }
+      if (todayStr === end.toDateString()) return { text: 'Ends Today', color: 'text-yellow-600 bg-yellow-50' };
+      if (today > end) return { text: 'Completed', color: 'text-slate-500 bg-slate-100' };
     }
-    
     return { text: 'Ongoing', color: 'text-blue-600 bg-blue-50' };
   };
 
-  const getDayNumber = () => {
-    const today = new Date();
-    return today.toLocaleDateString('en-US', { 
-      weekday: 'long',
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
-    });
-  };
+  const getDayNumber = () => new Date().toLocaleDateString('en-US', {
+    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+  });
 
   if (loading) {
     return (
@@ -195,8 +156,9 @@ const MedicationsView = () => {
 
   return (
     <div className="space-y-6">
+
       {/* Today's Date Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-cyan-600 rounded-2xl shadow-lg p-4 text-white">
+      <div className="bg-blue-600 rounded-2xl shadow-sm p-4 text-white">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
@@ -215,33 +177,26 @@ const MedicationsView = () => {
         </div>
       </div>
 
-      {/* Header with Analytics and Logs Button */}
-      <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
+      {/* Header with Analytics */}
+      <div className="bg-white rounded-2xl shadow-sm p-6 border border-slate-100">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h2 className="text-xl font-semibold text-gray-900">Medication Manager</h2>
-            <p className="text-sm text-gray-500 mt-1">
-              Track and manage family medications
-            </p>
+            <h2 className="text-xl font-semibold text-slate-900">Medication Manager</h2>
+            <p className="text-sm text-slate-500 mt-1">Track and manage family medications</p>
           </div>
-          
-          {/* Buttons container */}
           <div className="flex items-center gap-3">
-            {/* Logs Button */}
             <button
               onClick={() => setShowLogsModal(true)}
-              className="px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:shadow-lg transition-all duration-300 flex items-center gap-2"
+              className="px-4 py-2 border border-slate-300 text-slate-700 hover:bg-slate-50 rounded-xl transition-colors duration-200 flex items-center gap-2 font-medium"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
               </svg>
               <span>Medication Logs</span>
             </button>
-
-            {/* Add Medication Button */}
             <button
               onClick={() => setShowAddModal(true)}
-              className="px-4 py-2 bg-gradient-to-r from-blue-600 to-cyan-500 text-white rounded-xl hover:shadow-lg transition-all duration-300 flex items-center gap-2"
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-colors duration-200 flex items-center gap-2 font-medium"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -254,36 +209,29 @@ const MedicationsView = () => {
         {/* Analytics Cards */}
         {analytics && (
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl p-4">
-              <p className="text-sm text-gray-600 mb-1">Total Medications</p>
-              <p className="text-2xl font-bold text-gray-900">{analytics.summary?.totalMedications || 0}</p>
-            </div>
-            <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-4">
-              <p className="text-sm text-gray-600 mb-1">Total Doses</p>
-              <p className="text-2xl font-bold text-gray-900">{analytics.summary?.totalDoses || 0}</p>
-            </div>
-            <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-4">
-              <p className="text-sm text-gray-600 mb-1">Taken Today</p>
-              <p className="text-2xl font-bold text-gray-900">{analytics.summary?.totalTaken || 0}</p>
-            </div>
-            <div className="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-xl p-4">
-              <p className="text-sm text-gray-600 mb-1">Overall Adherence</p>
-              <p className={`text-2xl font-bold ${getAdherenceColor(analytics.summary?.overallAdherence || 0)} px-2 py-1 rounded-lg inline-block`}>
-                {Math.round(analytics.summary?.overallAdherence || 0)}%
-              </p>
-            </div>
+            {[
+              { label: 'Total Medications', value: analytics.summary?.totalMedications || 0 },
+              { label: 'Total Doses', value: analytics.summary?.totalDoses || 0 },
+              { label: 'Taken Today', value: analytics.summary?.totalTaken || 0 },
+              { label: 'Overall Adherence', value: `${Math.round(analytics.summary?.overallAdherence || 0)}%` },
+            ].map((card) => (
+              <div key={card.label} className="bg-slate-50 border border-slate-100 rounded-xl p-4">
+                <p className="text-sm text-slate-500 mb-1">{card.label}</p>
+                <p className="text-2xl font-bold text-slate-900">{card.value}</p>
+              </div>
+            ))}
           </div>
         )}
       </div>
 
       {/* Filter Bar */}
-      <div className="bg-white rounded-xl shadow-sm p-4 border border-gray-100">
+      <div className="bg-white rounded-xl shadow-sm p-4 border border-slate-100">
         <div className="flex items-center gap-4">
-          <span className="text-sm font-medium text-gray-700">Filter by:</span>
+          <span className="text-sm font-medium text-slate-700">Filter by:</span>
           <select
             value={selectedMember}
             onChange={(e) => setSelectedMember(e.target.value)}
-            className="px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
           >
             <option value="all">All Members</option>
             {members.map(member => (
@@ -298,11 +246,11 @@ const MedicationsView = () => {
         {medications.map((med) => {
           const dayStatus = getDayStatus(med.startDate, med.endDate);
           const todaySchedule = getTodaySchedule(med);
-          
+
           return (
-            <div key={med._id} className="bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden">
-              {/* Header */}
-              <div className="bg-gradient-to-r from-blue-600 to-cyan-500 px-4 py-3">
+            <div key={med._id} className="bg-white rounded-2xl shadow-sm hover:shadow-md transition-shadow duration-200 border border-slate-100 overflow-hidden">
+              {/* Card Header */}
+              <div className="bg-blue-600 px-4 py-3">
                 <div className="flex items-center justify-between">
                   <h3 className="font-semibold text-white">{med.medicineName}</h3>
                   <span className="px-2 py-1 bg-white/20 rounded-full text-xs text-white capitalize">
@@ -312,50 +260,48 @@ const MedicationsView = () => {
                 <p className="text-xs text-blue-100 mt-1">For: {med.userId?.name}</p>
               </div>
 
-              {/* Body */}
+              {/* Card Body */}
               <div className="p-4">
-                {/* Date Range and Status */}
-                <div className="mb-3 p-3 bg-gray-50 rounded-lg space-y-2">
+                {/* Duration */}
+                <div className="mb-3 p-3 bg-slate-50 rounded-lg space-y-2 border border-slate-100">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-medium text-gray-500">Duration:</span>
+                    <span className="text-xs font-medium text-slate-500">Duration:</span>
                     <span className={`text-xs font-medium px-2 py-1 rounded-full ${dayStatus.color}`}>
                       {dayStatus.text}
                     </span>
                   </div>
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-600">From:</span>
-                    <span className="font-medium text-gray-900">{formatDate(med.startDate)}</span>
+                    <span className="text-slate-500">From:</span>
+                    <span className="font-medium text-slate-900">{formatDate(med.startDate)}</span>
                   </div>
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-600">To:</span>
-                    <span className="font-medium text-gray-900">{formatDate(med.endDate)}</span>
+                    <span className="text-slate-500">To:</span>
+                    <span className="font-medium text-slate-900">{formatDate(med.endDate)}</span>
                   </div>
                 </div>
 
                 {/* Dosage */}
                 <div className="flex items-center gap-2 mb-3">
-                  <span className="text-sm font-medium text-gray-700">Dosage:</span>
-                  <span className="text-sm text-gray-600">
-                    {med.dosage?.value} {med.dosage?.unit}
-                  </span>
+                  <span className="text-sm font-medium text-slate-700">Dosage:</span>
+                  <span className="text-sm text-slate-600">{med.dosage?.value} {med.dosage?.unit}</span>
                 </div>
 
-                {/* Schedule */}
+                {/* Today's Schedule */}
                 <div className="mb-3">
-                  <span className="text-sm font-medium text-gray-700 block mb-2">Today's Schedule:</span>
+                  <span className="text-sm font-medium text-slate-700 block mb-2">Today's Schedule:</span>
                   <div className="space-y-2">
                     {todaySchedule.length > 0 ? (
                       todaySchedule.map((schedule, idx) => (
-                        <div key={idx} className="flex items-center justify-between bg-gray-50 p-2 rounded-lg">
-                          <span className="text-sm text-gray-600">{schedule.time}</span>
+                        <div key={idx} className="flex items-center justify-between bg-slate-50 p-2 rounded-lg border border-slate-100">
+                          <span className="text-sm text-slate-600">{schedule.time}</span>
                           {schedule.taken ? (
-                            <span className="text-xs text-green-600 bg-green-100 px-2 py-1 rounded-full">
+                            <span className="text-xs text-green-600 bg-green-100 px-2 py-1 rounded-full font-medium">
                               ✓ Taken
                             </span>
                           ) : (
                             <button
                               onClick={() => handleMarkAsTaken(med._id, schedule.time)}
-                              className="text-xs text-blue-600 bg-blue-100 px-2 py-1 rounded-full hover:bg-blue-200 transition-colors"
+                              className="text-xs text-blue-600 bg-blue-100 px-2 py-1 rounded-full hover:bg-blue-200 transition-colors font-medium"
                             >
                               Mark as Taken
                             </button>
@@ -363,19 +309,19 @@ const MedicationsView = () => {
                         </div>
                       ))
                     ) : (
-                      <p className="text-sm text-gray-500 italic">No doses scheduled for today</p>
+                      <p className="text-sm text-slate-400 italic">No doses scheduled for today</p>
                     )}
                   </div>
                 </div>
 
                 {/* Adherence */}
-                <div className="mt-3 pt-3 border-t border-gray-100">
+                <div className="mt-3 pt-3 border-t border-slate-100">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Adherence</span>
+                    <span className="text-sm text-slate-600">Adherence</span>
                     <div className="flex items-center gap-2">
-                      <div className="w-20 h-2 bg-gray-200 rounded-full overflow-hidden">
-                        <div 
-                          className="h-full bg-gradient-to-r from-green-500 to-green-600"
+                      <div className="w-20 h-2 bg-slate-200 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-green-500"
                           style={{ width: `${med.adherence || 0}%` }}
                         ></div>
                       </div>
@@ -386,19 +332,19 @@ const MedicationsView = () => {
                   </div>
                 </div>
 
-                {/* Instructions if any */}
+                {/* Instructions */}
                 {med.instructions && (
-                  <div className="mt-3 text-xs text-gray-500 bg-gray-50 p-2 rounded-lg">
+                  <div className="mt-3 text-xs text-slate-500 bg-slate-50 p-2 rounded-lg border border-slate-100">
                     📝 {med.instructions}
                   </div>
                 )}
 
-                {/* Quick actions */}
-                <div className="mt-4 pt-4 border-t border-gray-100 flex justify-end gap-2">
+                {/* Explain Action */}
+                <div className="mt-4 pt-4 border-t border-slate-100 flex justify-end">
                   <button
                     onClick={() => handleExplainMedicine(med.medicineName)}
                     disabled={explainingMedicine === med.medicineName}
-                    className="text-sm text-purple-600 hover:text-purple-800 font-medium flex items-center gap-1 disabled:opacity-50"
+                    className="text-sm text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1 disabled:opacity-50 transition-colors"
                   >
                     {explainingMedicine === med.medicineName ? (
                       <>
@@ -426,78 +372,55 @@ const MedicationsView = () => {
 
       {/* Empty State */}
       {medications.length === 0 && (
-        <div className="text-center py-12">
-          <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="text-center py-16 bg-white rounded-2xl border border-slate-100 shadow-sm">
+          <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg className="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No Medications Added</h3>
-          <p className="text-gray-500 mb-4">Start by adding your first medication</p>
+          <h3 className="text-lg font-medium text-slate-900 mb-1">No Medications Added</h3>
+          <p className="text-slate-500 text-sm mb-5">Start by adding your first medication</p>
           <button
             onClick={() => setShowAddModal(true)}
-            className="px-4 py-2 bg-gradient-to-r from-blue-600 to-cyan-500 text-white rounded-xl hover:shadow-lg transition-all duration-300"
+            className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-colors duration-200 font-medium"
           >
             Add Medication
           </button>
         </div>
       )}
 
-      {/* Add Medication Modal */}
-      <AddMedicationModal
-        isOpen={showAddModal}
-        onClose={() => setShowAddModal(false)}
-        onSubmit={handleAddMedication}
-      />
-
-      {/* Global Logs Modal */}
-      <GlobalLogsModal
-        isOpen={showLogsModal}
-        onClose={() => setShowLogsModal(false)}
-      />
+      <AddMedicationModal isOpen={showAddModal} onClose={() => setShowAddModal(false)} onSubmit={handleAddMedication} />
+      <GlobalLogsModal isOpen={showLogsModal} onClose={() => setShowLogsModal(false)} />
 
       {/* Explanation Modal */}
       {(medicineExplanation || explanationError) && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div 
-            className="fixed inset-0 bg-black bg-opacity-50" 
-            onClick={() => {
-              setMedicineExplanation('');
-              setExplanationError('');
-            }}
+          <div
+            className="fixed inset-0 bg-slate-900 bg-opacity-60"
+            onClick={() => { setMedicineExplanation(''); setExplanationError(''); }}
           ></div>
           <div className="relative bg-white rounded-2xl shadow-xl max-w-md w-full p-6">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">
+              <h3 className="text-lg font-semibold text-slate-900">
                 {explanationError ? 'Error' : 'Medicine Explanation'}
               </h3>
-              <button 
-                onClick={() => {
-                  setMedicineExplanation('');
-                  setExplanationError('');
-                }}
-                className="text-gray-400 hover:text-gray-600"
+              <button
+                onClick={() => { setMedicineExplanation(''); setExplanationError(''); }}
+                className="text-slate-400 hover:text-slate-600 transition-colors"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             </div>
-            
             {explanationError ? (
-              <div className="text-red-600 bg-red-50 p-4 rounded-lg">
-                {explanationError}
-              </div>
+              <div className="text-red-600 bg-red-50 p-4 rounded-lg border border-red-100">{explanationError}</div>
             ) : (
-              <p className="text-gray-700">{medicineExplanation}</p>
+              <p className="text-slate-700">{medicineExplanation}</p>
             )}
-            
             <button
-              onClick={() => {
-                setMedicineExplanation('');
-                setExplanationError('');
-              }}
-              className="mt-4 w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              onClick={() => { setMedicineExplanation(''); setExplanationError(''); }}
+              className="mt-4 w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors font-medium"
             >
               Close
             </button>

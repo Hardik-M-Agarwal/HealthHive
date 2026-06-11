@@ -20,9 +20,7 @@ const DocumentCard = ({ document, onFavorite, onCategoryChange, onDelete }) => {
   ];
 
   const getCategoryLabel = () => {
-    if (document.category === 'custom' && document.categoryCustom) {
-      return document.categoryCustom;
-    }
+    if (document.category === 'custom' && document.categoryCustom) return document.categoryCustom;
     const cat = categories.find(c => c.value === document.category);
     return cat ? cat.label.split(' ')[1] : document.category;
   };
@@ -33,11 +31,7 @@ const DocumentCard = ({ document, onFavorite, onCategoryChange, onDelete }) => {
   };
 
   const handleCategoryUpdate = () => {
-    onCategoryChange(
-      document._id,
-      selectedCategory,
-      selectedCategory === 'custom' ? customCategory : null
-    );
+    onCategoryChange(document._id, selectedCategory, selectedCategory === 'custom' ? customCategory : null);
     setShowCategoryModal(false);
     setShowMenu(false);
   };
@@ -56,26 +50,26 @@ const DocumentCard = ({ document, onFavorite, onCategoryChange, onDelete }) => {
 
   return (
     <>
-      <div className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-200 border border-gray-100 overflow-hidden">
+      <div className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 border border-slate-100 overflow-hidden">
         {/* Preview area */}
-        <div className="h-32 bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center relative">
+        <div className="h-32 bg-slate-50 flex items-center justify-center relative border-b border-slate-100">
           {document.fileType === 'image' && document.secureUrl ? (
-            <img 
-              src={document.secureUrl} 
+            <img
+              src={document.secureUrl}
               alt={document.originalName}
               className="w-full h-full object-cover"
             />
           ) : (
             <span className="text-5xl">{getFileIcon()}</span>
           )}
-          
+
           {/* Favorite button */}
           <button
             onClick={() => onFavorite(document._id)}
-            className="absolute top-2 right-2 p-1.5 bg-white rounded-full shadow-md hover:shadow-lg transition-shadow"
+            className="absolute top-2 right-2 p-1.5 bg-white rounded-full shadow-sm hover:shadow-md transition-shadow border border-slate-100"
           >
-            <svg 
-              className={`w-5 h-5 ${document.isFavorite ? 'text-yellow-500 fill-current' : 'text-gray-400'}`}
+            <svg
+              className={`w-5 h-5 ${document.isFavorite ? 'text-yellow-400 fill-current' : 'text-slate-300'}`}
               fill="currentColor"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -89,53 +83,48 @@ const DocumentCard = ({ document, onFavorite, onCategoryChange, onDelete }) => {
         <div className="p-4">
           <div className="flex items-start justify-between mb-2">
             <div className="flex-1 min-w-0">
-              <h3 className="font-medium text-gray-900 truncate" title={document.originalName}>
+              <h3 className="font-medium text-slate-900 truncate" title={document.originalName}>
                 {document.originalName}
               </h3>
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-slate-400 mt-1">
                 {formatFileSize(document.fileSize)} • {formatDistanceToNow(new Date(document.createdAt), { addSuffix: true })}
               </p>
             </div>
-            
+
             {/* Menu button */}
             <div className="relative">
               <button
                 onClick={() => setShowMenu(!showMenu)}
-                className="p-1 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100"
+                className="p-1 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100 transition-colors"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
                 </svg>
               </button>
-              
+
               {showMenu && (
-                <div className="absolute right-0 mt-1 w-48 bg-white rounded-lg shadow-xl border border-gray-200 py-1 z-10">
+                <div className="absolute right-0 mt-1 w-48 bg-white rounded-lg shadow-xl border border-slate-100 py-1 z-10">
                   <a
                     href={document.secureUrl || `http://localhost:5000${document.storagePath}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
                     onClick={() => setShowMenu(false)}
                   >
                     📄 View
                   </a>
                   <button
-                    onClick={() => {
-                      setShowCategoryModal(true);
-                      setShowMenu(false);
-                    }}
-                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    onClick={() => { setShowCategoryModal(true); setShowMenu(false); }}
+                    className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
                   >
                     🏷️ Change Category
                   </button>
                   <button
                     onClick={() => {
-                      if (window.confirm('Delete this document?')) {
-                        onDelete(document._id);
-                      }
+                      if (window.confirm('Delete this document?')) onDelete(document._id);
                       setShowMenu(false);
                     }}
-                    className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                    className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-red-50 transition-colors"
                   >
                     🗑️ Delete
                   </button>
@@ -146,8 +135,8 @@ const DocumentCard = ({ document, onFavorite, onCategoryChange, onDelete }) => {
 
           {/* Category badge */}
           <div className="flex items-center gap-1 mt-2">
-            <span className="text-lg">{getCategoryIcon()}</span>
-            <span className="text-xs px-2 py-1 bg-gray-100 text-gray-700 rounded-full">
+            <span className="text-base">{getCategoryIcon()}</span>
+            <span className="text-xs px-2 py-0.5 bg-slate-100 text-slate-600 rounded-full font-medium">
               {getCategoryLabel()}
             </span>
           </div>
@@ -157,14 +146,14 @@ const DocumentCard = ({ document, onFavorite, onCategoryChange, onDelete }) => {
       {/* Category Modal */}
       {showCategoryModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="fixed inset-0 bg-black bg-opacity-50" onClick={() => setShowCategoryModal(false)}></div>
+          <div className="fixed inset-0 bg-slate-900 bg-opacity-60" onClick={() => setShowCategoryModal(false)}></div>
           <div className="relative bg-white rounded-xl shadow-xl max-w-md w-full p-6">
-            <h3 className="text-lg font-semibold mb-4">Change Category</h3>
-            
+            <h3 className="text-lg font-semibold text-slate-900 mb-4">Change Category</h3>
+
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg mb-3"
+              className="w-full px-3 py-2 border border-slate-300 rounded-lg mb-3 focus:ring-2 focus:ring-blue-500 outline-none transition"
             >
               {categories.map(cat => (
                 <option key={cat.value} value={cat.value}>{cat.label}</option>
@@ -177,7 +166,7 @@ const DocumentCard = ({ document, onFavorite, onCategoryChange, onDelete }) => {
                 value={customCategory}
                 onChange={(e) => setCustomCategory(e.target.value)}
                 placeholder="Enter custom category"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg mb-4"
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg mb-4 focus:ring-2 focus:ring-blue-500 outline-none transition"
                 maxLength="50"
               />
             )}
@@ -185,13 +174,13 @@ const DocumentCard = ({ document, onFavorite, onCategoryChange, onDelete }) => {
             <div className="flex justify-end gap-2">
               <button
                 onClick={() => setShowCategoryModal(false)}
-                className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg"
+                className="px-4 py-2 border border-slate-300 text-slate-700 hover:bg-slate-50 rounded-lg transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={handleCategoryUpdate}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors font-medium"
               >
                 Save
               </button>

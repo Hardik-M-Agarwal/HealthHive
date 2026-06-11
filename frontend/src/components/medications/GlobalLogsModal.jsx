@@ -22,9 +22,7 @@ const GlobalLogsModal = ({ isOpen, onClose }) => {
   }, [isOpen]);
 
   useEffect(() => {
-    if (isOpen) {
-      fetchLogs();
-    }
+    if (isOpen) fetchLogs();
   }, [selectedMember, dateRange.startDate, dateRange.endDate]);
 
   const fetchFamilyMembers = async () => {
@@ -56,60 +54,38 @@ const GlobalLogsModal = ({ isOpen, onClose }) => {
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { 
-      month: 'short', 
-      day: 'numeric',
-      year: 'numeric'
-    });
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   };
 
-  const formatDateTime = (dateString, timeString) => {
-    return `${formatDate(dateString)} at ${timeString}`;
-  };
+  const formatDateTime = (dateString, timeString) => `${formatDate(dateString)} at ${timeString}`;
 
   const formatTakenTime = (takenAt) => {
     if (!takenAt) return '-';
-    const date = new Date(takenAt);
-    return date.toLocaleTimeString('en-US', { 
-      hour: '2-digit', 
-      minute: '2-digit'
-    });
+    return new Date(takenAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
   };
 
   const getStatusBadge = (status) => {
     const styles = {
-      taken: 'bg-green-100 text-green-800',
-      missed: 'bg-red-100 text-red-800',
-      skipped: 'bg-yellow-100 text-yellow-800',
-      late: 'bg-orange-100 text-orange-800'
+      taken: 'bg-green-100 text-green-700',
+      missed: 'bg-red-100 text-red-700',
+      skipped: 'bg-slate-100 text-slate-600',
+      late: 'bg-yellow-100 text-yellow-700'
     };
-    return styles[status] || 'bg-gray-100 text-gray-800';
+    return styles[status] || 'bg-slate-100 text-slate-600';
   };
 
-  const getInitials = (name) => {
-    return name?.charAt(0).toUpperCase() || '?';
-  };
-
-  const handleApplyFilters = () => {
-    fetchLogs();
-  };
+  const getInitials = (name) => name?.charAt(0).toUpperCase() || '?';
 
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center px-4 overflow-y-auto">
+      <div className="fixed inset-0 bg-slate-900 bg-opacity-60 z-40" onClick={onClose} />
 
-      {/* Overlay */}
-      <div
-        className="fixed inset-0 bg-gray-500 bg-opacity-75 z-40"
-        onClick={onClose}
-      />
-
-      {/* Modal */}
       <div className="relative z-50 bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all w-full max-w-6xl">
 
         {/* Header */}
-        <div className="bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-4">
+        <div className="bg-blue-600 px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
@@ -119,10 +95,7 @@ const GlobalLogsModal = ({ isOpen, onClose }) => {
               </div>
               <h3 className="text-xl font-bold text-white">Family Medication Logs</h3>
             </div>
-            <button
-              onClick={onClose}
-              className="text-white hover:text-gray-200 transition-colors"
-            >
+            <button onClick={onClose} className="text-white/80 hover:text-white transition-colors">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
@@ -131,168 +104,118 @@ const GlobalLogsModal = ({ isOpen, onClose }) => {
         </div>
 
         {/* Filters */}
-        <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
+        <div className="px-6 py-4 bg-slate-50 border-b border-slate-200">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Family Member
-              </label>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Family Member</label>
               <select
                 value={selectedMember}
                 onChange={(e) => setSelectedMember(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition"
               >
                 <option value="all">All Members</option>
                 {members.map(member => (
-                  <option key={member._id} value={member._id}>
-                    {member.name}
-                  </option>
+                  <option key={member._id} value={member._id}>{member.name}</option>
                 ))}
               </select>
             </div>
-
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                From Date
-              </label>
+              <label className="block text-sm font-medium text-slate-700 mb-1">From Date</label>
               <input
                 type="date"
                 value={dateRange.startDate}
                 onChange={(e) => setDateRange({ ...dateRange, startDate: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition"
               />
             </div>
-
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                To Date
-              </label>
+              <label className="block text-sm font-medium text-slate-700 mb-1">To Date</label>
               <input
                 type="date"
                 value={dateRange.endDate}
                 onChange={(e) => setDateRange({ ...dateRange, endDate: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition"
               />
             </div>
-
             <div className="flex items-end">
               <button
-                onClick={handleApplyFilters}
-                className="w-full px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 flex items-center justify-center gap-2"
+                onClick={fetchLogs}
+                className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 font-medium"
               >
                 Apply Filters
               </button>
             </div>
-
           </div>
         </div>
 
-        {/* Logs */}
+        {/* Logs Table */}
         <div className="px-6 py-4 max-h-[60vh] overflow-y-auto">
-
           {loading ? (
             <div className="flex items-center justify-center h-64">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
             </div>
           ) : (
-
             <div className="overflow-x-auto">
-
-              <table className="min-w-full divide-y divide-gray-200">
-
-                <thead className="bg-gray-50">
+              <table className="min-w-full divide-y divide-slate-200">
+                <thead className="bg-slate-50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date & Time</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Member</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Medicine</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Dosage</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Taken At</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Taken By</th>
+                    {['Date & Time', 'Member', 'Medicine', 'Dosage', 'Status', 'Taken At', 'Taken By'].map(h => (
+                      <th key={h} className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">{h}</th>
+                    ))}
                   </tr>
                 </thead>
-
-                <tbody className="bg-white divide-y divide-gray-200">
-
+                <tbody className="bg-white divide-y divide-slate-100">
                   {logs.length > 0 ? (
                     logs.map((log, index) => (
-                      <tr key={index} className="hover:bg-gray-50">
-
-                        <td className="px-6 py-4 text-sm">
+                      <tr key={index} className="hover:bg-slate-50 transition-colors">
+                        <td className="px-6 py-4 text-sm text-slate-700">
                           {formatDateTime(log.scheduledDate, log.scheduledTime)}
                         </td>
-
                         <td className="px-6 py-4">
                           <div className="flex items-center">
-                            <div className="w-8 h-8 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-full flex items-center justify-center text-white text-xs font-bold">
+                            <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-xs font-bold">
                               {getInitials(log.userId?.name)}
                             </div>
-                            <span className="ml-2 text-sm">
-                              {log.userId?.name || 'Unknown'}
-                            </span>
+                            <span className="ml-2 text-sm text-slate-700">{log.userId?.name || 'Unknown'}</span>
                           </div>
                         </td>
-
-                        <td className="px-6 py-4 text-sm font-medium">
-                          {log.medicineName}
-                        </td>
-
-                        <td className="px-6 py-4 text-sm">
-                          {log.dosage?.value} {log.dosage?.unit}
-                        </td>
-
+                        <td className="px-6 py-4 text-sm font-medium text-slate-900">{log.medicineName}</td>
+                        <td className="px-6 py-4 text-sm text-slate-700">{log.dosage?.value} {log.dosage?.unit}</td>
                         <td className="px-6 py-4">
                           <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusBadge(log.status)}`}>
                             {log.status}
                           </span>
                         </td>
-
-                        <td className="px-6 py-4 text-sm">
-                          {log.takenAt ? formatTakenTime(log.takenAt) : '-'}
-                        </td>
-
-                        <td className="px-6 py-4 text-sm">
-                          {log.takenBy?.name || log.userId?.name || '-'}
-                        </td>
-
+                        <td className="px-6 py-4 text-sm text-slate-700">{formatTakenTime(log.takenAt)}</td>
+                        <td className="px-6 py-4 text-sm text-slate-700">{log.takenBy?.name || log.userId?.name || '-'}</td>
                       </tr>
                     ))
                   ) : (
                     <tr>
-                      <td colSpan="7" className="px-6 py-12 text-center text-gray-500">
+                      <td colSpan="7" className="px-6 py-12 text-center text-slate-500">
                         No medication logs found.
                       </td>
                     </tr>
                   )}
-
                 </tbody>
-
               </table>
-
             </div>
-
           )}
-
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-between">
-
-          <span className="text-sm">
-            Total Logs: <strong>{logs.length}</strong>
+        <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex justify-between items-center">
+          <span className="text-sm text-slate-600">
+            Total Logs: <strong className="text-slate-900">{logs.length}</strong>
           </span>
-
           <div className="flex gap-4 text-sm">
-            <span className="text-green-600">Taken: {logs.filter(l => l.status === 'taken').length}</span>
-            <span className="text-red-600">Missed: {logs.filter(l => l.status === 'missed').length}</span>
-            <span className="text-orange-600">Late: {logs.filter(l => l.status === 'late').length}</span>
+            <span className="text-green-600 font-medium">Taken: {logs.filter(l => l.status === 'taken').length}</span>
+            <span className="text-red-500 font-medium">Missed: {logs.filter(l => l.status === 'missed').length}</span>
+            <span className="text-yellow-600 font-medium">Late: {logs.filter(l => l.status === 'late').length}</span>
           </div>
-
         </div>
 
       </div>
-
     </div>
   );
 };

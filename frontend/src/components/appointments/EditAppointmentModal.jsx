@@ -6,7 +6,6 @@ const EditAppointmentModal = ({ isOpen, onClose, onSubmit, appointment }) => {
 
   useEffect(() => {
     if (appointment) {
-      // Format date and time for the form inputs
       const date = new Date(appointment.dateTime);
       const formattedDate = date.toISOString().split('T')[0];
       const formattedTime = date.toTimeString().slice(0, 5);
@@ -22,7 +21,6 @@ const EditAppointmentModal = ({ isOpen, onClose, onSubmit, appointment }) => {
   }, [appointment, reset]);
 
   const handleFormSubmit = (data) => {
-    // Combine date and time
     const dateTime = new Date(`${data.date}T${data.time}`);
     
     const appointmentData = {
@@ -37,19 +35,18 @@ const EditAppointmentModal = ({ isOpen, onClose, onSubmit, appointment }) => {
 
   if (!isOpen) return null;
 
-  // Get tomorrow's date for min attribute
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
   const minDate = tomorrow.toISOString().split('T')[0];
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div className="elative flex items-center justify-center min-h-screen px-4">
-        <div className="fixed inset-0 transition-opacity bg-gray-500 z-40 bg-opacity-75" onClick={onClose}></div>
+      <div className="relative flex items-center justify-center min-h-screen px-4">
+        <div className="fixed inset-0 bg-slate-900 bg-opacity-60 z-40 transition-opacity" onClick={onClose}></div>
 
         <div className="relative z-50 inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
           {/* Header */}
-          <div className="bg-gradient-to-r from-blue-600 to-cyan-500 px-6 py-4">
+          <div className="bg-blue-600 px-6 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
@@ -59,7 +56,7 @@ const EditAppointmentModal = ({ isOpen, onClose, onSubmit, appointment }) => {
                 </div>
                 <h3 className="text-xl font-bold text-white">Edit Appointment</h3>
               </div>
-              <button onClick={onClose} className="text-white hover:text-gray-200">
+              <button onClick={onClose} className="text-white/80 hover:text-white transition-colors">
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
@@ -72,13 +69,13 @@ const EditAppointmentModal = ({ isOpen, onClose, onSubmit, appointment }) => {
             <div className="space-y-4">
               {/* Doctor Name */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-slate-700 mb-1">
                   Doctor Name <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
                   {...register('doctorName', { required: 'Doctor name is required' })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
                   placeholder="Dr. Smith"
                 />
                 {errors.doctorName && (
@@ -88,13 +85,13 @@ const EditAppointmentModal = ({ isOpen, onClose, onSubmit, appointment }) => {
 
               {/* Clinic/Hospital */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Clinic/Hospital <span className="text-red-500">*</span>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Clinic / Hospital <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
                   {...register('clinic', { required: 'Clinic name is required' })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
                   placeholder="City Hospital"
                 />
                 {errors.clinic && (
@@ -105,14 +102,14 @@ const EditAppointmentModal = ({ isOpen, onClose, onSubmit, appointment }) => {
               {/* Date and Time */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
                     Date <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="date"
                     min={minDate}
                     {...register('date', { required: 'Date is required' })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
                   />
                   {errors.date && (
                     <p className="text-red-500 text-sm mt-1">{errors.date.message}</p>
@@ -120,13 +117,13 @@ const EditAppointmentModal = ({ isOpen, onClose, onSubmit, appointment }) => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
                     Time <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="time"
                     {...register('time', { required: 'Time is required' })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
                   />
                   {errors.time && (
                     <p className="text-red-500 text-sm mt-1">{errors.time.message}</p>
@@ -136,13 +133,13 @@ const EditAppointmentModal = ({ isOpen, onClose, onSubmit, appointment }) => {
 
               {/* Notes */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Notes (Optional)
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Notes <span className="text-slate-400 font-normal">(Optional)</span>
                 </label>
                 <textarea
                   {...register('notes')}
                   rows="3"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition resize-none"
                   placeholder="Any additional notes..."
                 />
               </div>
@@ -153,13 +150,13 @@ const EditAppointmentModal = ({ isOpen, onClose, onSubmit, appointment }) => {
               <button
                 type="button"
                 onClick={onClose}
-                className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                className="px-6 py-2 border border-slate-300 rounded-lg text-slate-700 hover:bg-slate-50 transition-colors"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="px-6 py-2 bg-gradient-to-r from-blue-600 to-cyan-500 text-white rounded-lg hover:shadow-lg transition-all duration-300"
+                className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 font-medium"
               >
                 Update Appointment
               </button>

@@ -20,22 +20,18 @@ const AddMedicationModal = ({ isOpen, onClose, onSubmit }) => {
   ];
 
   const timeOfDayOptions = [
-  { value: 'morning', label: 'Morning', icon: '🌅', time: '10:00' },
-  { value: 'afternoon', label: 'Afternoon', icon: '☀️', time: '14:00' },
-  { value: 'evening', label: 'Evening', icon: '🌆', time: '18:00' },
-  { value: 'night', label: 'Night', icon: '🌙', time: '22:00' }
-];
+    { value: 'morning', label: 'Morning', icon: '🌅', time: '10:00' },
+    { value: 'afternoon', label: 'Afternoon', icon: '☀️', time: '14:00' },
+    { value: 'evening', label: 'Evening', icon: '🌆', time: '18:00' },
+    { value: 'night', label: 'Night', icon: '🌙', time: '22:00' }
+  ];
 
-  // Close modal on escape key
   useEffect(() => {
     const handleEscape = (e) => {
-      if (e.key === 'Escape') {
-        onClose();
-      }
+      if (e.key === 'Escape') onClose();
     };
     if (isOpen) {
       window.addEventListener('keydown', handleEscape);
-      // Prevent body scrolling when modal is open
       document.body.style.overflow = 'hidden';
     }
     return () => {
@@ -64,7 +60,6 @@ const AddMedicationModal = ({ isOpen, onClose, onSubmit }) => {
       userId: user.id,
       familyId: user.familyId
     };
-
     onSubmit(medicationData);
   };
 
@@ -72,18 +67,15 @@ const AddMedicationModal = ({ isOpen, onClose, onSubmit }) => {
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
-      {/* Background overlay */}
-      <div 
-        className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
+      <div
+        className="fixed inset-0 bg-slate-900 bg-opacity-60 transition-opacity"
         onClick={onClose}
       ></div>
 
-      {/* Modal container */}
       <div className="flex min-h-full items-center justify-center p-4">
-        {/* Modal panel */}
         <div className="relative w-full max-w-2xl transform overflow-hidden rounded-2xl bg-white shadow-2xl transition-all">
           {/* Header */}
-          <div className="bg-gradient-to-r from-blue-600 to-cyan-500 px-6 py-4">
+          <div className="bg-blue-600 px-6 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/20">
@@ -93,7 +85,7 @@ const AddMedicationModal = ({ isOpen, onClose, onSubmit }) => {
                 </div>
                 <h3 className="text-xl font-bold text-white">Add New Medication</h3>
               </div>
-              <button 
+              <button
                 onClick={onClose}
                 className="rounded-lg p-1 text-white/80 hover:bg-white/10 hover:text-white transition-colors"
               >
@@ -107,36 +99,35 @@ const AddMedicationModal = ({ isOpen, onClose, onSubmit }) => {
           {/* Form */}
           <form onSubmit={handleSubmit(handleFormSubmit)} className="max-h-[calc(100vh-200px)] overflow-y-auto px-6 py-6">
             <div className="space-y-6">
+
               {/* Basic Information */}
-              <div className="rounded-xl bg-gray-50 p-4">
-                <h4 className="mb-4 flex items-center gap-2 font-medium text-gray-900">
+              <div className="rounded-xl bg-slate-50 p-4 border border-slate-100">
+                <h4 className="mb-4 flex items-center gap-2 font-medium text-slate-900">
                   <span className="h-5 w-1 rounded-full bg-blue-600"></span>
                   Basic Information
                 </h4>
-                
                 <div className="space-y-4">
                   <div>
-                    <label className="mb-1 block text-sm font-medium text-gray-700">
+                    <label className="mb-1 block text-sm font-medium text-slate-700">
                       Medicine Name <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
                       {...register('medicineName', { required: 'Medicine name is required' })}
-                      className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500"
+                      className="w-full rounded-lg border border-slate-300 px-4 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500 outline-none transition"
                       placeholder="e.g., Amoxicillin"
                     />
                     {errors.medicineName && (
                       <p className="mt-1 text-sm text-red-500">{errors.medicineName.message}</p>
                     )}
                   </div>
-
                   <div>
-                    <label className="mb-1 block text-sm font-medium text-gray-700">
+                    <label className="mb-1 block text-sm font-medium text-slate-700">
                       Category
                     </label>
                     <select
                       {...register('category')}
-                      className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500"
+                      className="w-full rounded-lg border border-slate-300 px-4 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500 outline-none transition"
                     >
                       {categories.map(cat => (
                         <option key={cat.value} value={cat.value}>{cat.icon} {cat.label}</option>
@@ -147,39 +138,37 @@ const AddMedicationModal = ({ isOpen, onClose, onSubmit }) => {
               </div>
 
               {/* Dosage Information */}
-              <div className="rounded-xl bg-gray-50 p-4">
-                <h4 className="mb-4 flex items-center gap-2 font-medium text-gray-900">
-                  <span className="h-5 w-1 rounded-full bg-green-600"></span>
+              <div className="rounded-xl bg-slate-50 p-4 border border-slate-100">
+                <h4 className="mb-4 flex items-center gap-2 font-medium text-slate-900">
+                  <span className="h-5 w-1 rounded-full bg-blue-600"></span>
                   Dosage Information
                 </h4>
-
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="mb-1 block text-sm font-medium text-gray-700">
+                    <label className="mb-1 block text-sm font-medium text-slate-700">
                       Dosage Value <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="number"
                       step="0.1"
-                      {...register('dosageValue', { 
-                        required: 'Dosage value is required', 
+                      {...register('dosageValue', {
+                        required: 'Dosage value is required',
                         min: { value: 0, message: 'Dosage must be positive' }
                       })}
-                      className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500"
+                      className="w-full rounded-lg border border-slate-300 px-4 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500 outline-none transition"
                       placeholder="500"
                     />
                     {errors.dosageValue && (
                       <p className="mt-1 text-sm text-red-500">{errors.dosageValue.message}</p>
                     )}
                   </div>
-
                   <div>
-                    <label className="mb-1 block text-sm font-medium text-gray-700">
+                    <label className="mb-1 block text-sm font-medium text-slate-700">
                       Unit <span className="text-red-500">*</span>
                     </label>
                     <select
                       {...register('dosageUnit', { required: 'Unit is required' })}
-                      className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500"
+                      className="w-full rounded-lg border border-slate-300 px-4 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500 outline-none transition"
                     >
                       <option value="">Select unit</option>
                       {dosageUnits.map(unit => (
@@ -194,51 +183,49 @@ const AddMedicationModal = ({ isOpen, onClose, onSubmit }) => {
               </div>
 
               {/* Schedule */}
-              <div className="rounded-xl bg-gray-50 p-4">
-                <h4 className="mb-4 flex items-center gap-2 font-medium text-gray-900">
-                  <span className="h-5 w-1 rounded-full bg-purple-600"></span>
+              <div className="rounded-xl bg-slate-50 p-4 border border-slate-100">
+                <h4 className="mb-4 flex items-center gap-2 font-medium text-slate-900">
+                  <span className="h-5 w-1 rounded-full bg-blue-600"></span>
                   Schedule
                 </h4>
-
                 <div className="grid grid-cols-2 gap-4 mb-4">
                   <div>
-                    <label className="mb-1 block text-sm font-medium text-gray-700">
+                    <label className="mb-1 block text-sm font-medium text-slate-700">
                       Start Date <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="date"
                       {...register('startDate', { required: 'Start date is required' })}
-                      className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500"
+                      className="w-full rounded-lg border border-slate-300 px-4 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500 outline-none transition"
                     />
                     {errors.startDate && (
                       <p className="mt-1 text-sm text-red-500">{errors.startDate.message}</p>
                     )}
                   </div>
-
                   <div>
-                    <label className="mb-1 block text-sm font-medium text-gray-700">
-                      End Date
+                    <label className="mb-1 block text-sm font-medium text-slate-700">
+                      End Date <span className="text-slate-400 font-normal">(Optional)</span>
                     </label>
                     <input
                       type="date"
                       {...register('endDate')}
-                      className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500"
+                      className="w-full rounded-lg border border-slate-300 px-4 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500 outline-none transition"
                     />
                   </div>
                 </div>
 
                 <div className="mb-4">
-                  <label className="mb-2 block text-sm font-medium text-gray-700">
+                  <label className="mb-2 block text-sm font-medium text-slate-700">
                     Frequency
                   </label>
                   <div className="flex gap-3">
                     <button
                       type="button"
                       onClick={() => setFrequencyType('daily')}
-                      className={`flex-1 rounded-lg border px-3 py-2 transition-all ${
+                      className={`flex-1 rounded-lg border px-3 py-2 transition-all font-medium text-sm ${
                         frequencyType === 'daily'
                           ? 'border-blue-600 bg-blue-600 text-white'
-                          : 'border-gray-300 bg-white text-gray-700 hover:border-blue-500'
+                          : 'border-slate-300 bg-white text-slate-700 hover:border-blue-500'
                       }`}
                     >
                       Daily
@@ -246,10 +233,10 @@ const AddMedicationModal = ({ isOpen, onClose, onSubmit }) => {
                     <button
                       type="button"
                       onClick={() => setFrequencyType('custom')}
-                      className={`flex-1 rounded-lg border px-3 py-2 transition-all ${
+                      className={`flex-1 rounded-lg border px-3 py-2 transition-all font-medium text-sm ${
                         frequencyType === 'custom'
                           ? 'border-blue-600 bg-blue-600 text-white'
-                          : 'border-gray-300 bg-white text-gray-700 hover:border-blue-500'
+                          : 'border-slate-300 bg-white text-slate-700 hover:border-blue-500'
                       }`}
                     >
                       Custom Interval
@@ -259,12 +246,12 @@ const AddMedicationModal = ({ isOpen, onClose, onSubmit }) => {
 
                 {frequencyType === 'daily' && (
                   <div>
-                    <label className="mb-1 block text-sm font-medium text-gray-700">
+                    <label className="mb-1 block text-sm font-medium text-slate-700">
                       Times per day
                     </label>
                     <select
                       {...register('timesPerDay')}
-                      className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500"
+                      className="w-full rounded-lg border border-slate-300 px-4 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500 outline-none transition"
                     >
                       {[1, 2, 3, 4].map(num => (
                         <option key={num} value={num}>{num} time{num > 1 ? 's' : ''} per day</option>
@@ -275,7 +262,7 @@ const AddMedicationModal = ({ isOpen, onClose, onSubmit }) => {
 
                 {frequencyType === 'custom' && (
                   <div>
-                    <label className="mb-1 block text-sm font-medium text-gray-700">
+                    <label className="mb-1 block text-sm font-medium text-slate-700">
                       Interval (hours)
                     </label>
                     <input
@@ -283,7 +270,7 @@ const AddMedicationModal = ({ isOpen, onClose, onSubmit }) => {
                       {...register('interval')}
                       min="1"
                       max="24"
-                      className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500"
+                      className="w-full rounded-lg border border-slate-300 px-4 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500 outline-none transition"
                       placeholder="e.g., 8"
                     />
                   </div>
@@ -291,25 +278,24 @@ const AddMedicationModal = ({ isOpen, onClose, onSubmit }) => {
               </div>
 
               {/* Time of Day */}
-              <div className="rounded-xl bg-gray-50 p-4">
-                <h4 className="mb-4 flex items-center gap-2 font-medium text-gray-900">
-                  <span className="h-5 w-1 rounded-full bg-orange-600"></span>
+              <div className="rounded-xl bg-slate-50 p-4 border border-slate-100">
+                <h4 className="mb-4 flex items-center gap-2 font-medium text-slate-900">
+                  <span className="h-5 w-1 rounded-full bg-blue-600"></span>
                   Time of Day
                 </h4>
-
                 <div className="grid grid-cols-2 gap-3">
                   {timeOfDayOptions.map(option => (
-                    <label key={option.value} className="flex cursor-pointer items-center rounded-lg border border-gray-200 bg-white p-3 transition-all hover:border-blue-500">
+                    <label key={option.value} className="flex cursor-pointer items-center rounded-lg border border-slate-200 bg-white p-3 transition-all hover:border-blue-500">
                       <input
                         type="checkbox"
                         value={option.value}
                         {...register('timeOfDay')}
-                        className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
                       />
                       <span className="ml-3 flex items-center gap-2">
                         <span className="text-xl">{option.icon}</span>
-                        <span className="text-sm font-medium">{option.label}</span>
-                        <span className="text-xs text-gray-500">{option.time}</span>
+                        <span className="text-sm font-medium text-slate-700">{option.label}</span>
+                        <span className="text-xs text-slate-400">{option.time}</span>
                       </span>
                     </label>
                   ))}
@@ -317,31 +303,31 @@ const AddMedicationModal = ({ isOpen, onClose, onSubmit }) => {
               </div>
 
               {/* Instructions */}
-              <div className="rounded-xl bg-gray-50 p-4">
-                <label className="mb-1 block text-sm font-medium text-gray-700">
-                  Special Instructions
+              <div className="rounded-xl bg-slate-50 p-4 border border-slate-100">
+                <label className="mb-1 block text-sm font-medium text-slate-700">
+                  Special Instructions <span className="text-slate-400 font-normal">(Optional)</span>
                 </label>
                 <textarea
                   {...register('instructions')}
                   rows="3"
-                  className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500"
+                  className="w-full rounded-lg border border-slate-300 px-4 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500 outline-none transition resize-none"
                   placeholder="e.g., Take with food, avoid alcohol..."
                 />
               </div>
             </div>
 
             {/* Footer */}
-            <div className="mt-6 flex justify-end space-x-3 border-t border-gray-200 pt-4">
+            <div className="mt-6 flex justify-end space-x-3 border-t border-slate-200 pt-4">
               <button
                 type="button"
                 onClick={onClose}
-                className="rounded-lg border border-gray-300 px-6 py-2 text-gray-700 transition-colors hover:bg-gray-50"
+                className="rounded-lg border border-slate-300 px-6 py-2 text-slate-700 transition-colors hover:bg-slate-50"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="rounded-lg bg-gradient-to-r from-blue-600 to-cyan-500 px-6 py-2 text-white transition-all duration-300 hover:shadow-lg"
+                className="rounded-lg bg-blue-600 hover:bg-blue-700 px-6 py-2 text-white transition-colors duration-200 font-medium"
               >
                 Add Medication
               </button>
