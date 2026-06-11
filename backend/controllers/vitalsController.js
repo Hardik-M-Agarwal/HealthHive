@@ -7,13 +7,9 @@ const { validationResult } = require('express-validator');
 const detectAbnormal = (vitalsType, value) => {
   switch(vitalsType) {
     case 'bp':
-      // Expected format: { systolic: number, diastolic: number }
-      if (value.systolic > 140 || value.diastolic > 90) {
-        return true;
-      }
+      if (value.systolic > 140 || value.diastolic > 90) return true;
       break;
     case 'sugar':
-      // Fasting > 126, random > 200
       if (value > 200) return true;
       break;
     case 'weight':
@@ -44,7 +40,6 @@ const addVitals = async (req, res) => {
     const userId = req.user.id;
     const familyId = req.user.familyId;
 
-    // Detect if value is abnormal
     const abnormalFlag = detectAbnormal(vitalsType, value);
 
     const vitals = await Vitals.create({
@@ -58,10 +53,7 @@ const addVitals = async (req, res) => {
       timestamp: timestamp || Date.now()
     });
 
-    res.status(201).json({
-      success: true,
-      vitals
-    });
+    res.status(201).json({ success: true, vitals });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server error' });
@@ -77,25 +69,17 @@ const getMyVitals = async (req, res) => {
     const { type, days } = req.query;
 
     let query = { userId };
-    
-    if (type) {
-      query.vitalsType = type;
-    }
+    if (type) query.vitalsType = type;
 
-    // Filter by last X days
     if (days) {
       const date = new Date();
       date.setDate(date.getDate() - parseInt(days));
       query.timestamp = { $gte: date };
     }
 
-    const vitals = await Vitals.find(query)
-      .sort({ timestamp: -1 });
+    const vitals = await Vitals.find(query).sort({ timestamp: -1 });
 
-    res.json({
-      success: true,
-      vitals
-    });
+    res.json({ success: true, vitals });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server error' });
@@ -123,7 +107,6 @@ const getMyChartData = async (req, res) => {
       timestamp: { $gte: date }
     }).sort({ timestamp: 1 });
 
-    // Format data for chart
     const chartData = vitals.map(v => ({
       date: v.timestamp.toISOString().split('T')[0],
       value: v.value,
@@ -145,7 +128,56 @@ const getMyChartData = async (req, res) => {
   }
 };
 
-// @desc    Analyze current user's vitals trend using Gemini with fallbacks
+// @desc    Get latest vitals for all family members
+// @route   GET /api/vitals/family
+// @access  Private
+const getFamilyVitals = async (req, res) => {
+  try {
+    const familyId = req.user.familyId;
+    const { type } = req.query;
+
+    const matchQuery = { familyId };
+    if (type) matchQuery.vitalsType = type;
+
+    // Get latest reading per user per vital type using aggregation
+    const vitals = await Vitals.aggregate([
+      { $match: matchQuery },
+      { $sort: { timestamp: -1 } },
+      {
+        $group: {
+          _id: { userId: '$userId', vitalsType: '$vitalsType' },
+          value: { $first: '$value' },
+          unit: { $first: '$unit' },
+          abnormalFlag: { $first: '$abnormalFlag' },
+          timestamp: { $first: '$timestamp' }
+        }
+      }
+    ]);
+
+    // Populate member names
+    const userIds = [...new Set(vitals.map(v => v._id.userId))];
+    const users = await User.find({ _id: { $in: userIds } }, 'name');
+    const userMap = {};
+    users.forEach(u => { userMap[u._id.toString()] = u.name; });
+
+    const result = vitals.map(v => ({
+      memberId: v._id.userId,
+      memberName: userMap[v._id.userId.toString()] || 'Unknown',
+      type: v._id.vitalsType,
+      value: v.value,
+      unit: v.unit,
+      abnormal: v.abnormalFlag,
+      timestamp: v.timestamp
+    }));
+
+    res.json({ success: true, vitals: result });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// @desc    Analyze current user's vitals trend using Gemini
 // @route   POST /api/vitals/analyze-my-trend
 // @access  Private
 const analyzeMyTrend = async (req, res) => {
@@ -154,10 +186,7 @@ const analyzeMyTrend = async (req, res) => {
     const { vitalsType, days = 30 } = req.body;
 
     if (!vitalsType) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Vitals type is required' 
-      });
+      return res.status(400).json({ success: false, message: 'Vitals type is required' });
     }
 
     const date = new Date();
@@ -170,13 +199,12 @@ const analyzeMyTrend = async (req, res) => {
     }).sort({ timestamp: 1 });
 
     if (vitals.length === 0) {
-      return res.status(404).json({ 
-        success: false, 
-        message: 'No data found for analysis. Start by adding some vitals readings!' 
+      return res.status(404).json({
+        success: false,
+        message: 'No data found for analysis. Start by adding some vitals readings!'
       });
     }
 
-    // Format data for Gemini
     const dataPoints = vitals.map(v => {
       const dateStr = v.timestamp.toISOString().split('T')[0];
       if (vitalsType === 'bp') {
@@ -187,7 +215,6 @@ const analyzeMyTrend = async (req, res) => {
 
     const result = await geminiService.analyzeVitalsTrend(vitalsType, dataPoints, days);
 
-    // Add reading count to response
     const responseData = {
       success: true,
       analysis: result.analysis,
@@ -196,41 +223,32 @@ const analyzeMyTrend = async (req, res) => {
       readingCount: vitals.length
     };
 
-    // If using fallback, indicate that
     if (result.model === 'fallback') {
       responseData.note = 'Using enhanced statistical analysis while AI is unavailable';
     }
 
     res.json(responseData);
-
   } catch (error) {
     console.error('Vitals analysis error:', error);
-    
-    // Try to get reading count even on error
+
     let readingCount = 0;
     try {
-      const userId = req.user.id;
-      const { vitalsType, days = 30 } = req.body;
       const date = new Date();
-      date.setDate(date.getDate() - parseInt(days));
-      
+      date.setDate(date.getDate() - parseInt(req.body.days || 30));
       readingCount = await Vitals.countDocuments({
-        userId,
-        vitalsType,
+        userId: req.user.id,
+        vitalsType: req.body.vitalsType,
         timestamp: { $gte: date }
       });
-    } catch (e) {
-      // Ignore count error
-    }
-    
-    // Return a friendly fallback even on error
-    res.status(500).json({ 
-      success: false, 
+    } catch (e) {}
+
+    res.status(500).json({
+      success: false,
       message: 'Unable to analyze trend at this moment',
-      fallback: readingCount > 0 
-        ? `You have ${readingCount} reading${readingCount !== 1 ? 's' : ''} recorded. Please try again in a few moments for AI-powered insights, or continue tracking to build more data.`
+      fallback: readingCount > 0
+        ? `You have ${readingCount} reading${readingCount !== 1 ? 's' : ''} recorded. Please try again in a few moments.`
         : 'Start by adding some vitals readings to see trends and analysis!',
-      readingCount: readingCount
+      readingCount
     });
   }
 };
@@ -246,39 +264,23 @@ const getVitalsSummary = async (req, res) => {
     const date = new Date();
     date.setDate(date.getDate() - parseInt(days));
 
-    // Get counts by type
     const summary = await Vitals.aggregate([
-      {
-        $match: {
-          userId: userId,
-          timestamp: { $gte: date }
-        }
-      },
+      { $match: { userId, timestamp: { $gte: date } } },
       {
         $group: {
-          _id: "$vitalsType",
+          _id: '$vitalsType',
           count: { $sum: 1 },
-          abnormalCount: {
-            $sum: { $cond: ["$abnormalFlag", 1, 0] }
-          }
+          abnormalCount: { $sum: { $cond: ['$abnormalFlag', 1, 0] } }
         }
       }
     ]);
 
-    // Format response
     const formattedSummary = {};
     summary.forEach(item => {
-      formattedSummary[item._id] = {
-        total: item.count,
-        abnormal: item.abnormalCount
-      };
+      formattedSummary[item._id] = { total: item.count, abnormal: item.abnormalCount };
     });
 
-    res.json({
-      success: true,
-      days: parseInt(days),
-      summary: formattedSummary
-    });
+    res.json({ success: true, days: parseInt(days), summary: formattedSummary });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server error' });
@@ -289,6 +291,7 @@ module.exports = {
   addVitals,
   getMyVitals,
   getMyChartData,
+  getFamilyVitals,
   analyzeMyTrend,
   getVitalsSummary
 };

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { formatDistanceToNow } from 'date-fns';
 
 const DocumentCard = ({ document, onFavorite, onCategoryChange, onDelete }) => {
@@ -6,6 +6,18 @@ const DocumentCard = ({ document, onFavorite, onCategoryChange, onDelete }) => {
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(document.category);
   const [customCategory, setCustomCategory] = useState(document.categoryCustom || '');
+  const menuRef = useRef(null);
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        setShowMenu(false);
+      }
+    };
+    if (showMenu) window.document.addEventListener('mousedown', handleClickOutside);
+    return () => window.document.removeEventListener('mousedown', handleClickOutside);
+  }, [showMenu]);
 
   const categories = [
     { value: 'prescription', label: '💊 Prescription' },
@@ -43,16 +55,62 @@ const DocumentCard = ({ document, onFavorite, onCategoryChange, onDelete }) => {
   };
 
   const formatFileSize = (bytes) => {
+    if (!bytes) return '';
     if (bytes < 1024) return bytes + ' B';
     if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
     return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
   };
 
+  const getViewUrl = () => {
+    if (document.secureUrl) {
+      if (document.fileType === 'pdf') {
+        return document.secureUrl.replace('/upload/', '/upload/fl_inline/');
+      }
+      return document.secureUrl;
+    }
+    return `http://localhost:5001/api/documents/${document._id}/file`;
+  };
+
+  const handleView = async (e) => {
+    e.preventDefault();
+    setShowMenu(false);
+
+    const url = getViewUrl();
+
+    if (document.secureUrl) {
+      window.open(url, '_blank', 'noopener,noreferrer');
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(url, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (!response.ok) throw new Error('Failed to fetch');
+      const blob = await response.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      window.open(blobUrl, '_blank', 'noopener,noreferrer');
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
+    } catch (error) {
+      console.error('Error viewing document:', error);
+      alert('Failed to open document. Please try again.');
+    }
+  };
+
+  const handleDelete = () => {
+    setShowMenu(false);
+    if (window.confirm('Delete this document?')) {
+      onDelete(document._id);
+    }
+  };
+
   return (
     <>
-      <div className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 border border-slate-100 overflow-hidden">
-        {/* Preview area */}
-        <div className="h-32 bg-slate-50 flex items-center justify-center relative border-b border-slate-100">
+      {/* Card — no overflow-hidden so dropdown isn't clipped */}
+      <div className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 border border-slate-100">
+        {/* Preview area — overflow-hidden only here */}
+        <div className="h-32 bg-slate-50 flex items-center justify-center relative border-b border-slate-100 rounded-t-xl overflow-hidden">
           {document.fileType === 'image' && document.secureUrl ? (
             <img
               src={document.secureUrl}
@@ -82,17 +140,19 @@ const DocumentCard = ({ document, onFavorite, onCategoryChange, onDelete }) => {
         {/* Content */}
         <div className="p-4">
           <div className="flex items-start justify-between mb-2">
-            <div className="flex-1 min-w-0">
+            <div className="flex-1 min-w-0 pr-2">
               <h3 className="font-medium text-slate-900 truncate" title={document.originalName}>
                 {document.originalName}
               </h3>
               <p className="text-xs text-slate-400 mt-1">
-                {formatFileSize(document.fileSize)} • {formatDistanceToNow(new Date(document.createdAt), { addSuffix: true })}
+                {formatFileSize(document.fileSize)}
+                {document.fileSize ? ' • ' : ''}
+                {formatDistanceToNow(new Date(document.createdAt), { addSuffix: true })}
               </p>
             </div>
 
             {/* Menu button */}
-            <div className="relative">
+            <div className="relative flex-shrink-0" ref={menuRef}>
               <button
                 onClick={() => setShowMenu(!showMenu)}
                 className="p-1 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100 transition-colors"
@@ -103,30 +163,34 @@ const DocumentCard = ({ document, onFavorite, onCategoryChange, onDelete }) => {
               </button>
 
               {showMenu && (
-                <div className="absolute right-0 mt-1 w-48 bg-white rounded-lg shadow-xl border border-slate-100 py-1 z-10">
-                  <a
-                    href={document.secureUrl || `http://localhost:5000${document.storagePath}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
-                    onClick={() => setShowMenu(false)}
-                  >
-                    📄 View
-                  </a>
+                <div className="absolute right-0 mt-1 w-52 bg-white rounded-xl shadow-2xl border border-slate-100 py-1.5 z-50">
                   <button
-                    onClick={() => { setShowCategoryModal(true); setShowMenu(false); }}
-                    className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+                    onClick={handleView}
+                    className="w-full text-left px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors flex items-center gap-2"
                   >
-                    🏷️ Change Category
+                    <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                    View
                   </button>
                   <button
-                    onClick={() => {
-                      if (window.confirm('Delete this document?')) onDelete(document._id);
-                      setShowMenu(false);
-                    }}
-                    className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-red-50 transition-colors"
+                    onClick={() => { setShowCategoryModal(true); setShowMenu(false); }}
+                    className="w-full text-left px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors flex items-center gap-2"
                   >
-                    🗑️ Delete
+                    <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                    </svg>
+                    Change Category
+                  </button>
+                  <div className="my-1 border-t border-slate-100" />
+                  <button
+                    onClick={handleDelete}
+                    className="w-full text-left px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors flex items-center gap-2"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                    Delete
                   </button>
                 </div>
               )}

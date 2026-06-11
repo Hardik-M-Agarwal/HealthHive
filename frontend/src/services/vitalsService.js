@@ -1,7 +1,6 @@
 import api from './api';
 
 const vitalsService = {
-  // Add new vitals reading
   async addVitals(data) {
     try {
       const response = await api.post('/vitals', data);
@@ -12,7 +11,6 @@ const vitalsService = {
     }
   },
 
-  // Get current user's vitals
   async getMyVitals(params = {}) {
     try {
       const response = await api.get('/vitals/my-vitals', { params });
@@ -23,7 +21,6 @@ const vitalsService = {
     }
   },
 
-  // Get chart data for current user
   async getMyChartData(params = {}) {
     try {
       const response = await api.get('/vitals/my-chart', { params });
@@ -34,7 +31,16 @@ const vitalsService = {
     }
   },
 
-  // Analyze my trend
+  async getFamilyVitals(params = {}) {
+    try {
+      const response = await api.get('/vitals/family', { params });
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching family vitals:', error);
+      throw error;
+    }
+  },
+
   async analyzeMyTrend(data) {
     try {
       const response = await api.post('/vitals/analyze-my-trend', data);

@@ -15,42 +15,35 @@ const uploadDocument = async (req, res) => {
     const userId = req.user.id;
     const familyId = req.user.familyId;
     const file = req.file;
-    
     const { category, categoryCustom } = req.body;
 
-    // Determine file type
     let fileType = 'other';
-    if (file.mimetype.startsWith('image/')) {
-      fileType = 'image';
-    } else if (file.mimetype === 'application/pdf') {
-      fileType = 'pdf';
-    }
+    if (file.mimetype.startsWith('image/')) fileType = 'image';
+    else if (file.mimetype === 'application/pdf') fileType = 'pdf';
 
     let storagePath = file.path;
     let publicId = null;
     let secureUrl = null;
 
-    // Upload images to Cloudinary
+    // Images → Cloudinary (original working logic, untouched)
     if (fileType === 'image') {
       try {
         const result = await cloudinary.uploader.upload(file.path, {
           folder: 'medical-documents',
           resource_type: 'image'
         });
-        
         publicId = result.public_id;
         secureUrl = result.secure_url;
         storagePath = secureUrl;
-        
-        // Delete local file after Cloudinary upload
         await fs.unlink(file.path).catch(err => console.warn('Could not delete temp file:', err));
       } catch (error) {
         console.error('Cloudinary upload failed:', error);
-        // Keep local file
+        // Keep local file as fallback
       }
     }
 
-    // Create document record
+    // PDFs → stay on local server, served via /api/documents/:id/file
+
     const document = await MedicalDocument.create({
       userId,
       familyId,
@@ -64,10 +57,7 @@ const uploadDocument = async (req, res) => {
       secureUrl
     });
 
-    res.status(201).json({
-      success: true,
-      document
-    });
+    res.status(201).json({ success: true, document });
 
   } catch (error) {
     console.error('Error uploading document:', error);
@@ -84,15 +74,8 @@ const getDocuments = async (req, res) => {
     const { category, search, favorite } = req.query;
 
     const query = { userId };
-    
-    if (category) {
-      query.category = category;
-    }
-    
-    if (favorite === 'true') {
-      query.isFavorite = true;
-    }
-    
+    if (category) query.category = category;
+    if (favorite === 'true') query.isFavorite = true;
     if (search) {
       query.$or = [
         { originalName: { $regex: search, $options: 'i' } },
@@ -100,13 +83,8 @@ const getDocuments = async (req, res) => {
       ];
     }
 
-    const documents = await MedicalDocument.find(query)
-      .sort({ createdAt: -1 });
-
-    res.json({
-      success: true,
-      documents
-    });
+    const documents = await MedicalDocument.find(query).sort({ createdAt: -1 });
+    res.json({ success: true, documents });
 
   } catch (error) {
     console.error('Error fetching documents:', error);
@@ -120,22 +98,37 @@ const getDocuments = async (req, res) => {
 const getDocumentById = async (req, res) => {
   try {
     const document = await MedicalDocument.findById(req.params.id);
-
-    if (!document) {
-      return res.status(404).json({ message: 'Document not found' });
-    }
-
-    if (document.userId.toString() !== req.user.id) {
-      return res.status(403).json({ message: 'Not authorized' });
-    }
-
-    res.json({
-      success: true,
-      document
-    });
-
+    if (!document) return res.status(404).json({ message: 'Document not found' });
+    if (document.userId.toString() !== req.user.id) return res.status(403).json({ message: 'Not authorized' });
+    res.json({ success: true, document });
   } catch (error) {
     console.error('Error fetching document:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// @desc    Serve PDF directly from local storage
+// @route   GET /api/documents/:id/file
+// @access  Private
+const serveDocument = async (req, res) => {
+  try {
+    const document = await MedicalDocument.findById(req.params.id);
+    if (!document) return res.status(404).json({ message: 'Document not found' });
+    if (document.userId.toString() !== req.user.id) return res.status(403).json({ message: 'Not authorized' });
+
+    // Images → redirect to Cloudinary URL
+    if (document.secureUrl) {
+      return res.redirect(document.secureUrl);
+    }
+
+    // PDFs → serve from local disk
+    const filePath = path.resolve(document.storagePath);
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `inline; filename="${document.originalName}"`);
+    res.sendFile(filePath);
+
+  } catch (error) {
+    console.error('Error serving document:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };
@@ -146,23 +139,11 @@ const getDocumentById = async (req, res) => {
 const toggleFavorite = async (req, res) => {
   try {
     const document = await MedicalDocument.findById(req.params.id);
-
-    if (!document) {
-      return res.status(404).json({ message: 'Document not found' });
-    }
-
-    if (document.userId.toString() !== req.user.id) {
-      return res.status(403).json({ message: 'Not authorized' });
-    }
-
+    if (!document) return res.status(404).json({ message: 'Document not found' });
+    if (document.userId.toString() !== req.user.id) return res.status(403).json({ message: 'Not authorized' });
     document.isFavorite = !document.isFavorite;
     await document.save();
-
-    res.json({
-      success: true,
-      isFavorite: document.isFavorite
-    });
-
+    res.json({ success: true, isFavorite: document.isFavorite });
   } catch (error) {
     console.error('Error toggling favorite:', error);
     res.status(500).json({ message: 'Server error' });
@@ -176,29 +157,12 @@ const updateCategory = async (req, res) => {
   try {
     const { category, categoryCustom } = req.body;
     const document = await MedicalDocument.findById(req.params.id);
-
-    if (!document) {
-      return res.status(404).json({ message: 'Document not found' });
-    }
-
-    if (document.userId.toString() !== req.user.id) {
-      return res.status(403).json({ message: 'Not authorized' });
-    }
-
+    if (!document) return res.status(404).json({ message: 'Document not found' });
+    if (document.userId.toString() !== req.user.id) return res.status(403).json({ message: 'Not authorized' });
     document.category = category;
-    if (category === 'custom') {
-      document.categoryCustom = categoryCustom;
-    } else {
-      document.categoryCustom = undefined;
-    }
-    
+    document.categoryCustom = category === 'custom' ? categoryCustom : undefined;
     await document.save();
-
-    res.json({
-      success: true,
-      document
-    });
-
+    res.json({ success: true, document });
   } catch (error) {
     console.error('Error updating category:', error);
     res.status(500).json({ message: 'Server error' });
@@ -211,35 +175,21 @@ const updateCategory = async (req, res) => {
 const deleteDocument = async (req, res) => {
   try {
     const document = await MedicalDocument.findById(req.params.id);
+    if (!document) return res.status(404).json({ message: 'Document not found' });
+    if (document.userId.toString() !== req.user.id) return res.status(403).json({ message: 'Not authorized' });
 
-    if (!document) {
-      return res.status(404).json({ message: 'Document not found' });
-    }
-
-    if (document.userId.toString() !== req.user.id) {
-      return res.status(403).json({ message: 'Not authorized' });
-    }
-
-    // Delete from Cloudinary if it's an image
+    // Delete from Cloudinary if image
     if (document.publicId) {
       await cloudinary.uploader.destroy(document.publicId);
     }
 
-    // Delete local file if it exists
-    if (document.storagePath && !document.secureUrl) {
-      try {
-        await fs.unlink(document.storagePath);
-      } catch (err) {
-        console.warn('Could not delete local file:', err);
-      }
+    // Delete local file for PDFs
+    if (document.fileType === 'pdf' && document.storagePath) {
+      await fs.unlink(document.storagePath).catch(err => console.warn('Could not delete local file:', err));
     }
 
     await document.deleteOne();
-
-    res.json({
-      success: true,
-      message: 'Document deleted successfully'
-    });
+    res.json({ success: true, message: 'Document deleted successfully' });
 
   } catch (error) {
     console.error('Error deleting document:', error);
@@ -251,6 +201,7 @@ module.exports = {
   uploadDocument,
   getDocuments,
   getDocumentById,
+  serveDocument,
   toggleFavorite,
   updateCategory,
   deleteDocument
