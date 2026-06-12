@@ -1,0 +1,31 @@
+{
+  "features": [
+    "age",
+    "bmi",
+    "avg_systolic",
+    "avg_diastolic",
+    "bp_variability",
+    "avg_glucose",
+    "sugar_variability",
+    "avg_pulse",
+    "adherence_rate",
+    "missed_doses",
+    "has_chronic_condition",
+    "physical_activity_score",
+    "diet_quality_score",
+    "stress_score",
+    "sleep_score"
+  ],
+  "target": "hypertension_risk",
+  "classes": [
+    "high",
+    "low",
+    "medium"
+  ],
+  "n_samples_train": 94801,
+  "n_samples_test": 23701,
+  "accuracy": 0.9628,
+  "auc_score": 0.9972,
+  "model_version": "1.0",
+  "trained_on": "2026-06-12"
+}

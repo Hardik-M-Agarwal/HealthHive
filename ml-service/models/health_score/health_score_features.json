@@ -1,0 +1,30 @@
+{
+  "features": [
+    "age",
+    "bmi",
+    "avg_systolic",
+    "avg_diastolic",
+    "bp_variability",
+    "avg_glucose",
+    "sugar_variability",
+    "avg_pulse",
+    "adherence_rate",
+    "missed_doses",
+    "has_chronic_condition",
+    "allergies_count",
+    "physical_activity_score",
+    "diet_quality_score",
+    "stress_score",
+    "sleep_score"
+  ],
+  "target": "health_score",
+  "type": "regression",
+  "score_range": "10-100",
+  "n_samples_train": 378360,
+  "n_samples_test": 94590,
+  "mae": 1.2088,
+  "rmse": 1.7459,
+  "r2_score": 0.97,
+  "model_version": "1.0",
+  "trained_on": "2026-06-12"
+}
