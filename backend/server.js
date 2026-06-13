@@ -24,6 +24,7 @@ const emergencyRoutes = require('./routes/emergencyRoutes');
 const healthReportRoutes = require('./routes/healthReportRoutes');
 const documentRoutes = require('./routes/documentRoutes');
 const dashboardRoutes = require('./routes/dashboardRoutes');
+const internalRoutes = require('./routes/internalRoutes');
 
 const app = express();
 
@@ -46,6 +47,7 @@ app.use('/api/health-reports', healthReportRoutes);
 app.use('/api/documents', documentRoutes);
 app.use('/uploads', express.static('uploads'));
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/internal', internalRoutes);
 
 // Error handler
 app.use((err, req, res, next) => {
