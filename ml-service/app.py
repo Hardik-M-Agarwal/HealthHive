@@ -68,7 +68,6 @@ def get_contributing_factors(data, diabetes_risk, hyp_risk):
     factors  = []
     positives = []
 
-    # BP
     if data['avg_systolic'] > 140:
         factors.append(f"High systolic BP ({data['avg_systolic']:.0f} mmHg — normal <120)")
     elif data['avg_systolic'] > 130:
@@ -81,7 +80,6 @@ def get_contributing_factors(data, diabetes_risk, hyp_risk):
     elif data['avg_diastolic'] <= 80:
         positives.append(f"Diastolic BP normal ({data['avg_diastolic']:.0f} mmHg)")
 
-    # Blood sugar
     if data['avg_glucose'] > 140:
         factors.append(f"High blood sugar ({data['avg_glucose']:.0f} mg/dL — normal 70-100)")
     elif data['avg_glucose'] > 100:
@@ -89,17 +87,14 @@ def get_contributing_factors(data, diabetes_risk, hyp_risk):
     else:
         positives.append(f"Blood sugar in normal range ({data['avg_glucose']:.0f} mg/dL)")
 
-    # BP variability
     if data['bp_variability'] > 15:
         factors.append(f"High BP variability (readings fluctuating ±{data['bp_variability']:.0f} mmHg)")
     elif data['bp_variability'] <= 8:
         positives.append("Stable BP readings throughout the week")
 
-    # Sugar variability
     if data['sugar_variability'] > 25:
         factors.append(f"Unstable blood sugar levels (variability: {data['sugar_variability']:.0f})")
 
-    # Medication adherence
     if data['adherence_rate'] < 0.7:
         factors.append(f"Low medication adherence ({data['adherence_rate']*100:.0f}% — target >80%)")
     elif data['adherence_rate'] < 0.8:
@@ -107,11 +102,9 @@ def get_contributing_factors(data, diabetes_risk, hyp_risk):
     else:
         positives.append(f"Good medication adherence ({data['adherence_rate']*100:.0f}%)")
 
-    # Missed doses
     if data['missed_doses'] > 5:
         factors.append(f"{data['missed_doses']} doses missed this week")
 
-    # BMI
     if data['bmi'] > 30:
         factors.append(f"BMI indicates obesity ({data['bmi']:.1f} — healthy: 18.5-24.9)")
     elif data['bmi'] > 25:
@@ -119,7 +112,6 @@ def get_contributing_factors(data, diabetes_risk, hyp_risk):
     elif 18.5 <= data['bmi'] <= 24.9:
         positives.append(f"Healthy BMI ({data['bmi']:.1f})")
 
-    # Lifestyle
     if data['physical_activity_score'] < 3:
         factors.append("Low physical activity score")
     elif data['physical_activity_score'] >= 7:
@@ -133,7 +125,6 @@ def get_contributing_factors(data, diabetes_risk, hyp_risk):
     elif data['sleep_score'] >= 7:
         positives.append(f"Good sleep pattern ({data['sleep_score']:.1f}/10)")
 
-    # Pulse
     if 60 <= data['avg_pulse'] <= 100:
         positives.append(f"Pulse rate normal ({data['avg_pulse']:.0f} bpm)")
     else:
@@ -142,6 +133,15 @@ def get_contributing_factors(data, diabetes_risk, hyp_risk):
     return factors[:6], positives[:4]
 
 # ─── Routes ───────────────────────────────────────────────────────────────────
+@app.route('/', methods=['GET'])
+def root():
+    return jsonify({
+        "service": "HealthHive ML Service",
+        "status": "running",
+        "endpoints": ["/health", "/predict", "/generate-pdf"]
+    }), 200
+
+
 @app.route('/health', methods=['GET'])
 def health():
     return jsonify({"status": "ok", "message": "ML service running"}), 200
@@ -154,30 +154,19 @@ def predict():
         if not data:
             return jsonify({"error": "No data provided"}), 400
 
-        # Defaults for missing fields
         defaults = {
-            'age': 40,
-            'bmi': 25.0,
-            'avg_systolic': 120.0,
-            'avg_diastolic': 80.0,
-            'bp_variability': 8.0,
-            'avg_glucose': 95.0,
-            'sugar_variability': 10.0,
-            'avg_pulse': 75.0,
-            'adherence_rate': 0.85,
-            'missed_doses': 2,
-            'has_chronic_condition': 0,
-            'allergies_count': 0,
-            'physical_activity_score': 5.0,
-            'diet_quality_score': 5.0,
-            'stress_score': 5.0,
-            'sleep_score': 6.0
+            'age': 40, 'bmi': 25.0,
+            'avg_systolic': 120.0, 'avg_diastolic': 80.0, 'bp_variability': 8.0,
+            'avg_glucose': 95.0, 'sugar_variability': 10.0,
+            'avg_pulse': 75.0, 'adherence_rate': 0.85, 'missed_doses': 2,
+            'has_chronic_condition': 0, 'allergies_count': 0,
+            'physical_activity_score': 5.0, 'diet_quality_score': 5.0,
+            'stress_score': 5.0, 'sleep_score': 6.0
         }
         for key, val in defaults.items():
             if key not in data or data[key] is None:
                 data[key] = val
 
-        # ── Diabetes prediction ──────────────────────────────────────────────
         d_features = np.array([[data[f] for f in DIABETES_FEATURES]])
         d_scaled   = diabetes_scaler.transform(d_features)
         d_pred     = diabetes_model.predict(d_scaled)[0]
@@ -185,7 +174,6 @@ def predict():
         d_risk     = diabetes_le.inverse_transform([d_pred])[0]
         d_score    = float(max(d_proba))
 
-        # ── Hypertension prediction ──────────────────────────────────────────
         h_features = np.array([[data[f] for f in HYPERTENSION_FEATURES]])
         h_scaled   = hyp_scaler.transform(h_features)
         h_pred     = hyp_model.predict(h_scaled)[0]
@@ -193,17 +181,14 @@ def predict():
         h_risk     = hyp_le.inverse_transform([h_pred])[0]
         h_score    = float(max(h_proba))
 
-        # ── Health score prediction ──────────────────────────────────────────
         hs_features = np.array([[data[f] for f in HEALTH_SCORE_FEATURES]])
         hs_scaled   = hs_scaler.transform(hs_features)
         health_score = float(hs_model.predict(hs_scaled)[0])
         health_score = round(max(10, min(100, health_score)), 1)
         health_grade = get_health_grade(health_score)
 
-        # ── Contributing factors ─────────────────────────────────────────────
         contributing, positives = get_contributing_factors(data, d_risk, h_risk)
 
-        # ── Cardiovascular risk (derived) ────────────────────────────────────
         cvd_score = (
             (1 if data['avg_systolic'] > 130 else 0) * 0.3 +
             (1 if data['avg_glucose'] > 100 else 0) * 0.2 +
@@ -281,5 +266,7 @@ def generate_pdf():
 
 
 if __name__ == '__main__':
-    print("🚀 Starting ML service on port 5002...")
-    app.run(host='0.0.0.0', port=5002, debug=False)
+    # Render provides the PORT env variable — must bind to it for deployment
+    port = int(os.environ.get("PORT", 5002))
+    print(f"🚀 Starting ML service on port {port}...")
+    app.run(host='0.0.0.0', port=port, debug=False)
