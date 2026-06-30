@@ -28,11 +28,33 @@ const internalRoutes = require('./routes/internalRoutes');
 
 const app = express();
 
+// ─── CORS Configuration ───────────────────────────────────────────────────────
+// Allow multiple origins (local dev + deployed frontend) without hardcoding.
+// Set FRONTEND_URL on Render to your Vercel URL once deployed.
+// Comma-separate multiple origins if needed, e.g.
+// FRONTEND_URL=https://healthhive.vercel.app,https://www.healthhive.app
+const allowedOrigins = [
+  'http://localhost:5173',
+  ...(process.env.FRONTEND_URL ? process.env.FRONTEND_URL.split(',').map(s => s.trim()) : []),
+];
+
+const corsOptions = {
+  origin: (origin, callback) => {
+    // allow non-browser tools (curl, Postman, n8n) which send no origin
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error(`CORS blocked for origin: ${origin}`));
+    }
+  },
+  credentials: true,
+};
+
 // Body parser
 app.use(express.json());
 
 // Enable CORS
-app.use(cors());
+app.use(cors(corsOptions));
 
 // Mount routers
 app.use('/api/auth', authRoutes);
@@ -48,6 +70,9 @@ app.use('/api/documents', documentRoutes);
 app.use('/uploads', express.static('uploads'));
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/internal', internalRoutes);
+
+// Root route — used by Render for health checks
+app.get('/', (req, res) => res.send('HealthHive API running 🚀'));
 
 // Error handler
 app.use((err, req, res, next) => {
