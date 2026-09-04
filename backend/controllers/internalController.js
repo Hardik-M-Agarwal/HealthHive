@@ -182,8 +182,23 @@ const generateHealthSummary = async (req, res) => {
       weekly_stats,
       risk_assessment,
       contributing_factors,
-      positive_factors
+      positive_factors,
+      concern_guidance,   // NEW — from Retrieve Guidance node (RAG)
+      positive_guidance   // NEW — from Retrieve Guidance node (RAG)
     } = req.body;
+
+    // Build a grounding text block from retrieved guideline chunks, if present.
+    // If the Retrieve Guidance step wasn't included (or returned nothing),
+    // this simply becomes an empty string and the prompt behaves exactly as before.
+    let guidanceBlock = '';
+    if (concern_guidance && concern_guidance.length > 0) {
+      guidanceBlock += `\nRELEVANT CLINICAL GUIDANCE FOR THEIR CONCERNS (use this to inform your tip — paraphrase in your own warm words, do not copy verbatim):\n`;
+      guidanceBlock += concern_guidance.map(g => `- ${g.text}`).join('\n');
+    }
+    if (positive_guidance && positive_guidance.length > 0) {
+      guidanceBlock += `\n\nRELEVANT GUIDANCE REINFORCING WHAT'S GOING WELL:\n`;
+      guidanceBlock += positive_guidance.map(g => `- ${g.text}`).join('\n');
+    }
 
     const prompt = `You are a friendly family health advisor writing a weekly health summary for a family health portal. Be warm, supportive, and non-scary. Explain findings in simple everyday language. Acknowledge positives before concerns. Never use alarming medical jargon.
 
@@ -204,9 +219,10 @@ RISK LEVELS (from ML model):
 
 WHAT NEEDS ATTENTION: ${contributing_factors.length ? contributing_factors.join(', ') : 'Nothing major'}
 WHAT IS GOING WELL: ${positive_factors.join(', ')}
+${guidanceBlock}
 
 Respond ONLY with valid JSON — no markdown, no backticks, no extra text:
-{"weekly_summary": "3-4 warm sentences about their week", "actionable_tip": "one specific actionable tip for this week", "closing_motivation": "one short encouraging sentence"}`;
+{"weekly_summary": "3-4 warm sentences about their week", "actionable_tip": "one specific actionable tip for this week, grounded in the clinical guidance above where relevant", "closing_motivation": "one short encouraging sentence"}`;
 
     const result = await geminiService.generateContent(prompt, {
       temperature: 0.7,

@@ -1,0 +1,172 @@
+[
+  {
+    "id": "bp_systolic_high_1",
+    "category": "hypertension",
+    "text": "A systolic blood pressure consistently above 140 mmHg is classified as Stage 2 hypertension. This level is associated with meaningfully higher risk of stroke and heart disease if left unmanaged. Reducing sodium intake, increasing physical activity, and taking prescribed blood pressure medication consistently are the most effective first steps."
+  },
+  {
+    "id": "bp_systolic_high_2",
+    "category": "hypertension",
+    "text": "When systolic readings are elevated, home monitoring at the same time each day helps distinguish a true trend from a one-off spike caused by stress, caffeine, or activity. Consistent elevated readings across a week are more clinically meaningful than a single high reading."
+  },
+  {
+    "id": "bp_systolic_elevated_1",
+    "category": "hypertension",
+    "text": "Systolic readings between 130 and 140 mmHg fall into Stage 1 hypertension. At this stage, lifestyle changes such as regular moderate exercise, reduced sodium, limited alcohol, and stress management are often recommended before or alongside medication, depending on overall cardiovascular risk."
+  },
+  {
+    "id": "bp_diastolic_high_1",
+    "category": "hypertension",
+    "text": "A diastolic blood pressure above 90 mmHg indicates the pressure in the arteries between heartbeats is too high, which increases strain on blood vessels over time. This is treated with the same lifestyle and medication approaches as elevated systolic pressure, and both numbers should be considered together."
+  },
+  {
+    "id": "bp_normal_1",
+    "category": "hypertension_positive",
+    "text": "Blood pressure readings consistently below 120/80 mmHg reflect a low cardiovascular risk profile. Maintaining this through continued physical activity, a balanced diet, and stress management is one of the most protective long-term health habits available."
+  },
+  {
+    "id": "bp_variability_high_1",
+    "category": "hypertension",
+    "text": "Even when average blood pressure looks acceptable, large swings between readings — known as BP variability — independently predict cardiovascular events. Research shows that patients whose blood pressure fluctuates significantly carry higher risk than those with stable but slightly elevated numbers. Consistent sleep, reduced stress, and adherence to medication timing help stabilize this variability."
+  },
+  {
+    "id": "bp_variability_high_2",
+    "category": "hypertension",
+    "text": "Common contributors to unstable blood pressure include irregular medication timing, inconsistent sleep schedules, caffeine or alcohol fluctuations, and unmanaged stress. Addressing the root cause of variability is often more impactful than simply lowering the average reading."
+  },
+  {
+    "id": "bp_stable_1",
+    "category": "hypertension_positive",
+    "text": "Stable blood pressure readings from day to day are a strong positive sign, since consistency itself reduces cardiovascular strain regardless of the average value. This is often the result of a steady daily routine, including consistent medication timing and sleep patterns."
+  },
+  {
+    "id": "glucose_high_1",
+    "category": "diabetes",
+    "text": "A fasting blood glucose level above 126 mg/dL meets the clinical threshold associated with diabetes. Persistently high glucose damages blood vessels and nerves over time. Reducing refined carbohydrate and sugar intake, increasing physical activity, and taking prescribed medication as directed are the primary management strategies."
+  },
+  {
+    "id": "glucose_high_2",
+    "category": "diabetes",
+    "text": "Blood glucose above 140 mg/dL on a non-fasting reading suggests the body is struggling to process sugar efficiently. Spacing carbohydrate intake throughout the day rather than consuming it in large amounts at once can help moderate these spikes."
+  },
+  {
+    "id": "glucose_elevated_1",
+    "category": "diabetes",
+    "text": "Glucose levels between 100 and 126 mg/dL fall into the pre-diabetic range. This stage is often reversible through sustained lifestyle changes — increased activity, reduced processed sugar, and modest weight loss have all been shown to meaningfully lower progression risk to full diabetes."
+  },
+  {
+    "id": "glucose_normal_1",
+    "category": "diabetes_positive",
+    "text": "Blood glucose consistently in the 70-100 mg/dL range indicates healthy insulin function and carbohydrate metabolism. Continuing a balanced diet and regular activity is the best way to maintain this."
+  },
+  {
+    "id": "sugar_variability_high_1",
+    "category": "diabetes",
+    "text": "Large swings in blood sugar readings throughout the week, independent of the average glucose level, can indicate inconsistent meal timing, irregular carbohydrate intake, or medication timing issues. High glucose variability is associated with increased diabetes-related complications even when the average glucose appears acceptable."
+  },
+  {
+    "id": "sugar_variability_high_2",
+    "category": "diabetes",
+    "text": "Stabilizing blood sugar variability often starts with consistent meal timing and portion sizes rather than eliminating specific foods. Eating at similar times each day helps the body regulate insulin response more predictably."
+  },
+  {
+    "id": "adherence_low_1",
+    "category": "adherence",
+    "text": "Medication adherence below 70% is strongly associated with poorer outcomes in chronic disease management, including higher rates of hospitalization. Missed doses reduce the medication's ability to maintain stable levels in the body, which can cause the underlying condition to fluctuate or worsen."
+  },
+  {
+    "id": "adherence_low_2",
+    "category": "adherence",
+    "text": "Common reasons for missed medication doses include forgetting, complex dosing schedules, side effects, and cost concerns. Setting a fixed daily reminder, using a pill organizer, or aligning doses with an existing daily habit like brushing teeth can meaningfully improve consistency."
+  },
+  {
+    "id": "adherence_below_target_1",
+    "category": "adherence",
+    "text": "Adherence between 70% and 80% is below the generally recommended target of 80% or higher for most chronic conditions. Even small improvements in consistency at this level can produce noticeable improvements in symptom control."
+  },
+  {
+    "id": "adherence_good_1",
+    "category": "adherence_positive",
+    "text": "Medication adherence above 80% is associated with significantly better long-term outcomes across most chronic conditions. Maintaining a consistent daily routine for taking medication is one of the most effective things a patient can do for their health."
+  },
+  {
+    "id": "missed_doses_1",
+    "category": "adherence",
+    "text": "Missing more than 5 doses in a week meaningfully increases the chance of the underlying condition becoming less controlled. If side effects or cost are contributing to missed doses, discussing alternatives with a healthcare provider is often more effective than trying to push through on willpower alone."
+  },
+  {
+    "id": "bmi_obese_1",
+    "category": "weight",
+    "text": "A BMI above 30 falls into the obesity range, which is an independent risk factor for diabetes, hypertension, and cardiovascular disease. Even a modest weight reduction of 5-10% of body weight has been shown to produce measurable improvements in blood pressure and glucose control."
+  },
+  {
+    "id": "bmi_overweight_1",
+    "category": "weight",
+    "text": "A BMI between 25 and 30 is classified as overweight. At this range, small sustained changes — reducing portion sizes, increasing daily movement, limiting sugary beverages — tend to be more sustainable and effective than restrictive short-term diets."
+  },
+  {
+    "id": "bmi_healthy_1",
+    "category": "weight_positive",
+    "text": "A BMI between 18.5 and 24.9 falls within the healthy range associated with lower risk of chronic disease. Maintaining current activity and eating habits is the most effective way to sustain this."
+  },
+  {
+    "id": "activity_low_1",
+    "category": "activity",
+    "text": "Low physical activity is independently associated with higher risk of diabetes, hypertension, and cardiovascular disease, regardless of diet or weight. Even light activity, such as a 20-30 minute daily walk, has measurable benefits for both blood pressure and glucose control."
+  },
+  {
+    "id": "activity_low_2",
+    "category": "activity",
+    "text": "General guidance recommends at least 150 minutes of moderate-intensity activity per week, which can be broken into shorter daily sessions. Starting with small, consistent increases in daily movement is more sustainable than attempting an intense routine that is difficult to maintain."
+  },
+  {
+    "id": "activity_good_1",
+    "category": "activity_positive",
+    "text": "Regular physical activity at or above recommended levels measurably reduces blood pressure, improves insulin sensitivity, and supports healthy weight maintenance. Continuing this habit is one of the most protective things a person can do for long-term health."
+  },
+  {
+    "id": "stress_high_1",
+    "category": "stress",
+    "text": "Chronic high stress raises cortisol levels, which can directly elevate both blood pressure and blood glucose over time. Stress also frequently contributes to poor sleep and reduced medication adherence, compounding its effect on overall health. Simple daily practices like brief breathing exercises, short walks, or consistent sleep schedules can help lower baseline stress levels."
+  },
+  {
+    "id": "stress_high_2",
+    "category": "stress",
+    "text": "Persistently elevated stress scores are worth addressing directly rather than only treating the downstream effects like elevated blood pressure. Identifying specific stress triggers and building small daily coping routines tends to be more effective than addressing stress only when it becomes severe."
+  },
+  {
+    "id": "sleep_poor_1",
+    "category": "sleep",
+    "text": "Poor sleep quality is linked to insulin resistance and elevated blood pressure, since inadequate sleep disrupts the body's hormonal regulation of both glucose and stress hormones. Aiming for 7-9 hours of consistent sleep with a regular bedtime is one of the most effective ways to support both metabolic and cardiovascular health."
+  },
+  {
+    "id": "sleep_poor_2",
+    "category": "sleep",
+    "text": "Common contributors to poor sleep quality include irregular bedtimes, screen use before bed, caffeine late in the day, and untreated stress. Addressing these habits often improves sleep quality more effectively than sleep aids alone."
+  },
+  {
+    "id": "sleep_good_1",
+    "category": "sleep_positive",
+    "text": "Consistent, good-quality sleep supports healthy blood sugar regulation, blood pressure control, and stress resilience. Maintaining a regular sleep schedule is one of the simplest and most effective habits for overall health."
+  },
+  {
+    "id": "pulse_abnormal_1",
+    "category": "vitals",
+    "text": "A resting pulse consistently outside the 60-100 bpm range can reflect several underlying factors, from fitness level to medication effects to an underlying heart rhythm issue, and is worth discussing with a healthcare provider if it persists. A pulse below 60 bpm is common in physically fit individuals and is not automatically concerning."
+  },
+  {
+    "id": "pulse_normal_1",
+    "category": "vitals_positive",
+    "text": "A resting pulse in the normal 60-100 bpm range reflects healthy cardiovascular function. Regular physical activity often lowers resting pulse over time as a positive adaptation, so a pulse toward the lower end of the range is generally a good sign in an active individual."
+  },
+  {
+    "id": "general_multiple_factors_1",
+    "category": "general",
+    "text": "When multiple risk factors are present at once — such as elevated blood pressure combined with low adherence and low activity — they tend to compound each other's effects rather than simply adding up. Addressing medication adherence first often has the fastest measurable impact, since it directly stabilizes the underlying condition being treated."
+  },
+  {
+    "id": "general_small_changes_1",
+    "category": "general",
+    "text": "Sustainable health improvement generally comes from small, consistent changes rather than large short-term efforts. Picking one or two specific habits to focus on for a few weeks tends to produce better long-term results than attempting to change everything at once."
+  }
+]

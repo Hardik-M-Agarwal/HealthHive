@@ -5,6 +5,7 @@ import numpy as np
 import json
 import os
 from pdf_generator import generate_weekly_report_pdf
+from retrieval import retrieve_for_factors
 from datetime import datetime
 
 app = Flask(__name__)
@@ -138,7 +139,7 @@ def root():
     return jsonify({
         "service": "HealthHive ML Service",
         "status": "running",
-        "endpoints": ["/health", "/predict", "/generate-pdf"]
+        "endpoints": ["/health", "/predict", "/generate-pdf", "/retrieve-guidance"]
     }), 200
 
 
@@ -236,6 +237,29 @@ def predict():
             },
             "contributing_factors": contributing,
             "positive_factors":     positives
+        }), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/retrieve-guidance', methods=['POST'])
+def retrieve_guidance():
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({"error": "No data provided"}), 400
+
+        contributing_factors = data.get('contributing_factors', [])
+        positive_factors = data.get('positive_factors', [])
+
+        concern_guidance = retrieve_for_factors(contributing_factors, is_concern=True, top_k_per_factor=2)
+        positive_guidance = retrieve_for_factors(positive_factors, is_concern=False, top_k_per_factor=1)
+
+        return jsonify({
+            "success": True,
+            "concern_guidance": concern_guidance,
+            "positive_guidance": positive_guidance
         }), 200
 
     except Exception as e:
